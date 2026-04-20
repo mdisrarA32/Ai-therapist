@@ -1,245 +1,198 @@
-# Aura3.0: AI-Powered Mental Health Support on Sonic 🧠⛓️
+# 🧠 AI Therapist — Intelligent Mental Health Support System
 
-[![Sonic Token](https://img.shields.io/badge/Sonic-Integration-purple.svg)]()
-[![Zerepy](https://img.shields.io/badge/Zerepy-AI_Agent-blue.svg)]()
-[![HIPAA](https://img.shields.io/badge/HIPAA-Compliant-green.svg)]()
-[![Crisis Response](https://img.shields.io/badge/Crisis-Detection-red.svg)]()
-[![Smart Contract](https://img.shields.io/badge/Sonic_Blaze-Testnet-orange.svg)]()
+> An AI-powered mental health support platform that provides real-time, session-aware conversations, emotion detection, and safe, structured responses using modern web technologies and NLP.
 
-> An autonomous AI therapist powered by advanced NLP and emotional intelligence, providing personalized mental health support while ensuring privacy through blockchain technology. Built on Sonic Blaze Testnet with Zerepy agents.
+---
 
-## 📸 Project Showcase
+## 📸 Project Preview
 
-<div align="center">
-  <img src="https://i.imghippo.com/files/uath6507iKU.png" alt="Aura Dashboard" width="45%" />
-  <img src="https://i.imghippo.com/files/CBbx8767gPg.png" alt="Therapy Session" width="45%" />
-</div>
+(Add your screenshots here — dashboard, chat UI, therapy session)
 
-<div align="center">
-  <img src="https://i.imghippo.com/files/RHud5372Iq.png" alt="Progress Tracking" width="45%" />
-  <img src="https://i.imghippo.com/files/FBU1874HaE.png" alt="Mental Health Analytics" width="45%" />
-</div>
-
-<div align="center">
-  <img src="https://i.imghippo.com/files/Su5718PoM.png" alt="AI Interaction" width="45%" />
-  <img src="https://i.imghippo.com/files/Q1022fI.png" alt="Therapeutic Features" width="45%" />
-</div>
+---
 
 ## 🌟 Key Features
 
-### 🤖 Advanced AI Therapy System
+### 🤖 AI-Powered Therapy Chat
 
-- **Zerepy Agent Integration**
-  - Advanced autonomous agent powered by state-of-the-art gpt-4
-  - Multi-agent coordination for comprehensive care
-  - Dynamic personality adaptation based on user needs
-  - Specialized therapeutic approaches and interventions
-  - Real-time crisis detection and emergency protocols
-  - Continuous learning and improvement system
+* Real-time conversational AI using NLP
+* Context-aware responses across sessions
+* Calm, structured, and user-friendly replies
+* Supports continuous conversation flow
 
-### 🎨 Blockchain-Secured Therapy Sessions
+---
 
-- **Smart Contract Architecture**
+### 🧠 Emotion & Risk Detection
 
-  ```solidity
-  struct TherapySession {
-      uint256 sessionId;
-      uint256 timestamp;
-      string summary;
-      string[] topics;
-      uint256 duration;
-      uint8 moodScore;
-      string[] achievements;
-      bool completed;
-  }
-  ```
+* Detects user emotions from messages
+* Classifies risk levels (low → high)
+* Enables safety-first response system
+* Helps identify stress, anxiety, and distress signals
 
-- **HIPAA-Compliant Data Management**
+---
 
-  - End-to-end encryption for all communications
-  - Zero-knowledge proofs for privacy
-  - Decentralized storage of session records
-  - Granular consent management system
+### ⚠️ Safety & Crisis Handling
 
-- **NFT-Based Progress Tracking**
-  - ERC-721 therapy session certificates
-  - Achievement-based milestone NFTs
-  - Privacy-preserving metadata structure
-  - Verifiable progress records
+* Built-in crisis detection logic
+* Safe response generation for sensitive cases
+* Escalation-aware design (non-harmful, supportive replies)
+* Designed with ethical AI principles
 
-### 🌈 Interactive Therapeutic Features
+---
 
-- **Mindfulness Activities**
+### 📊 Session & Activity Tracking
 
-  - Breathing exercises with visual guidance
-  - Digital Zen garden for stress relief
-  - Virtual forest walks
-  - Ocean wave meditation
+* Stores therapy sessions in database
+* Tracks mood and activity logs
+* Provides session history
+* Enables future analytics & insights
 
-- **Smart Environment Integration**
-  - IoT device synchronization
-  - Ambient lighting control
-  - Therapeutic sound management
-  - Environmental adaptation to mood
+---
 
-### 💫 Sonic Token Integration
+### 🎤 Voice Interaction (Optional Feature)
 
-```typescript
-interface ISonicToken {
-    function mint(address to, uint256 amount) external;
-    function stake(uint256 amount) external;
-    function getRewards() external view returns (uint256);
-}
-```
+* Speech-to-text for user input
+* Text-to-speech AI responses
+* Hands-free conversational experience
 
-- **Tokenized Reward System**
-  - Achievement-based token distribution
-  - Engagement staking mechanisms
-  - Community participation rewards
-  - Progress milestone bonuses
+---
 
-## 🛠 Technical Implementation
+## 🛠 Tech Stack
 
-### AI Agent Architecture
+### Frontend
 
-```typescript
-class TherapyAgentConfig {
-  name: string;
-  personality: string;
-  specialties: string[];
-  language_model: string = "gemini-1.5-flash";
-  temperature: float = 0.7;
-  therapy_approach: string;
-  crisis_protocol: Object;
-}
-```
+* Next.js (React)
+* TypeScript
+* Tailwind CSS
 
-### Security Measures
+### Backend
 
-- **Blockchain Security**
+* Node.js
+* Express.js
+* TypeScript
 
-  - Smart contract auditing
-  - Multi-signature therapy session validation
-  - Encrypted on-chain storage
-  - Automated security monitoring
+### Database
 
-- **Data Protection**
-  - HIPAA-compliant encryption
-  - Secure key management
-  - Regular security audits
-  - Privacy-preserving analytics
+* MongoDB
 
-### Crisis Detection System
+### AI Integration
 
-```typescript
-const detectStressSignals = (message: string): StressPrompt | null => {
-  const stressKeywords = [
-    "stress",
-    "anxiety",
-    "worried",
-    "panic",
-    "overwhelmed",
-    "nervous",
-    "tense",
-    "pressure",
-  ];
-  // Advanced pattern matching and intervention logic
-};
-```
+* Google Gemini API / Local LLM (Ollama)
+
+---
+
+## 🏗 System Architecture
+
+* Frontend communicates with backend via REST APIs
+* Backend processes:
+
+  * Authentication
+  * Chat sessions
+  * Emotion detection
+  * AI response generation
+* AI service generates structured therapy responses
+* MongoDB stores sessions, users, and logs
+
+---
+
+## 🔒 Security & Privacy
+
+* Environment variables for sensitive data
+* JWT-based authentication
+* Minimal user data storage (privacy-first approach)
+* No exposure of API keys (.env protected)
+
+---
 
 ## 🚀 Getting Started
 
-1. **Clone & Install**
+### 1. Clone the repository
 
-   ```bash
-   git clone https://github.com/blocklinklabs/aura3.0.git
-   cd aura3.0
-   npm install
-   ```
+```bash
+git clone https://github.com/mdisrarA32/Ai-therapist.git
+cd Ai-therapist
+```
 
-2. **Configure Environment**
+---
 
-   ```bash
-   cp .env.example .env
-   # Add required API keys:
-   # - SONIC_PRIVATE_KEY
-   # - GEMINI_API_KEY
-   # - ZEREPY_API_KEY
-   ```
+### 2. Install dependencies
 
-3. **Deploy Smart Contracts**
+```bash
+cd backend
+npm install
 
-   ```bash
-   npx hardhat run scripts/deploy.ts --network sonic_blaze_testnet
-   ```
+cd ../frontend
+npm install
+```
 
-4. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
+---
 
-## 📈 Performance Metrics
+### 3. Setup environment variables
 
-- Response Time: <100ms
-- Emotion Detection Accuracy: 94.5%
-- Crisis Prediction Precision: 91.3%
-- Transaction Throughput: 2000 TPS
-- NFT Minting Time: ~15s
+Create `.env` files in both folders:
 
-## 🔒 Security & Compliance
+#### Backend `.env`
 
-- End-to-end encryption
-- HIPAA compliance
-- GDPR compliance
-- Regular security audits
-- Penetration testing
-- Privacy-preserving architecture
-- Zero-knowledge proof implementation
-- Secure key management
-- Multi-factor authentication
-- Role-based access control
+```env
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_secret
+GEMINI_API_KEY=your_api_key
+```
 
-## 🗺 Development Roadmap
+#### Frontend `.env.local`
 
-### Phase 1: Enhanced User Experience
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
 
-- Enhanced NFT visualization system
-- Advanced reward mechanisms
-- Mobile app release
-- NFT marketplace integration
-- Multi-language support
-- Advanced crisis intervention
-- Expanded IoT integration
-- Enhanced privacy features
+---
 
-### Phase 2: Platform Expansion
+### 4. Run the project
 
-- Group therapy features
-- DAO governance implementation
-- Cross-chain NFT bridging
-- Enhanced achievement system
-- AI model improvements
-- Community features
-- Advanced analytics
-- Expanded integrations
+#### Backend
+
+```bash
+npm run dev
+```
+
+#### Frontend
+
+```bash
+npm run dev
+```
+
+---
+
+## 📈 Future Improvements
+
+* Advanced emotion classification using ML models
+* Improved crisis detection accuracy
+* Dashboard analytics & visual insights
+* Multi-language support
+* Deployment (Vercel + Render/Railway)
+* Human-in-the-loop moderation system
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome!
+Feel free to fork the repo and submit a pull request.
+
+---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE)
+MIT License
 
-## 🌟 Acknowledgments
+---
 
-- Sonic
-- Zerepy AI Framework
-- Mental Health Professionals
-- Open Source Community
+## 👨‍💻 Author
+
+Md Israr
+Computer Science Student | AI & Full Stack Developer
 
 ---
 
 <p align="center">
-Built with ❤️ on Sonic Blaze Testnet and Zerepy for better mental health
+Built with ❤️ for safe and accessible mental health support
 </p>
