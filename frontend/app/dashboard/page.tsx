@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 
 import { MoodForm } from "@/components/mood/mood-form";
 import { AnxietyGames } from "@/components/games/anxiety-games";
+import WelcomeSplash from "@/src/components/WelcomeSplash";
+import CrisisSupportModal from '@/components/CrisisSupportModal';
 
 import {
   getUserActivities,
@@ -49,6 +51,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getInsights, getMoodTierFromScore } from '@/lib/insightsUtils';
+import { MoodTier, Suggestion } from '@/lib/insightsData';
 import {
   addDays,
   format,
@@ -120,9 +124,9 @@ const calculateDailyStats = (activities: Activity[]): DailyStats => {
   const averageMood =
     moodEntries.length > 0
       ? Math.round(
-          moodEntries.reduce((acc, curr) => acc + (curr.moodScore || 0), 0) /
-            moodEntries.length
-        )
+        moodEntries.reduce((acc, curr) => acc + (curr.moodScore || 0), 0) /
+        moodEntries.length
+      )
       : null;
 
   // Count therapy sessions (all sessions ever)
@@ -266,21 +270,58 @@ const generateInsights = (activities: Activity[]) => {
     .slice(0, 3);
 };
 
+// ── Daily check-in rate helpers (no React deps, safe to live at module level) ──
+
+/** Record today's date (YYYY-MM-DD) into localStorage `aura_checkins`. Idempotent — only adds once per day. */
+function recordDailyCheckin(): void {
+  if (typeof window === "undefined") return;
+  const today = new Date().toISOString().split("T")[0];
+  const stored = localStorage.getItem("aura_checkins");
+  const checkins: string[] = stored ? JSON.parse(stored) : [];
+  if (!checkins.includes(today)) checkins.push(today);
+  // Trim to last 30 days
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const filtered = checkins.filter((d) => new Date(d) >= cutoff);
+  localStorage.setItem("aura_checkins", JSON.stringify(filtered));
+}
+
+/** Count how many of the last 7 days have a check-in entry. */
+function getWeeklyCheckinRate(): { count: number; total: number; label: string } {
+  if (typeof window === "undefined") return { count: 0, total: 7, label: "Start today" };
+  const stored = localStorage.getItem("aura_checkins");
+  const checkins: string[] = stored ? JSON.parse(stored) : [];
+  const last7: string[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    last7.push(d.toISOString().split("T")[0]);
+  }
+  const count = last7.filter((day) => checkins.includes(day)).length;
+  const label =
+    count === 7 ? "Perfect week!"
+      : count >= 5 ? "Great consistency"
+        : count >= 3 ? "Keep it up"
+          : count === 0 ? "Start today"
+            : "Building the habit";
+  return { count, total: 7, label };
+}
+
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const router = useRouter();
   const { user } = useSession();
 
-  // Rename the state variable
-  const [insights, setInsights] = useState<
-    {
-      title: string;
-      description: string;
-      icon: any;
-      priority: "low" | "medium" | "high";
-    }[]
-  >([]);
+  // New Insights State
+  const [insights, setInsights] = useState(() =>
+    getInsights(getMoodTierFromScore(50))
+  );
+
+  const refreshInsights = useCallback((newScore: number) => {
+    const tier = getMoodTierFromScore(newScore);
+    setInsights(getInsights(tier));
+  }, []);
 
   // New states for activities and wearables
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -305,41 +346,52 @@ export default function Dashboard() {
     lastUpdated: new Date()
   });
 
+  // Lazy-initialised from localStorage so it's correct even before any mood save
+  const [checkinRate, setCheckinRate] = useState(getWeeklyCheckinRate);
+
+  const [externalGame, setExternalGame] = useState<string | null>(null);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const emergencyContact = user?.emergencyContact;
+
   useEffect(() => {
     if (!mounted) return;
-    const uId = user?.id || "default-user";
-    
+    const uId = user?._id || "default-user";
+
     const fetchDashboard = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
         const res = await fetch(`${apiUrl}/api/dashboard/${uId}`);
         const data = await res.json();
         if (data && data.userId) {
-          setRealtimeData({
-            moodScore: data.moodScore,
+          setRealtimeData((prev) => ({
+            ...prev,
+            // Only replace moodScore if the API returned a real value;
+            // if null/undefined, keep the last known score (e.g. from onMoodSaved)
+            moodScore: data.moodScore ?? prev.moodScore,
             totalActivities: data.totalActivities,
             therapySessions: data.therapySessions,
-            lastUpdated: new Date(data.lastUpdated)
-          });
+            lastUpdated: new Date(data.lastUpdated),
+          }));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
-    
+
     fetchDashboard();
 
     const socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001", {
       transports: ["websocket"]
     });
-    
+
     socket.on('dashboardUpdated', (data) => {
-      setRealtimeData({
-        moodScore: data.moodScore,
+      setRealtimeData((prev) => ({
+        ...prev,
+        moodScore: data.moodScore ?? prev.moodScore,
         totalActivities: data.totalActivities,
         therapySessions: data.therapySessions,
-        lastUpdated: new Date(data.lastUpdated)
-      });
+        lastUpdated: new Date(data.lastUpdated),
+      }));
     });
-    
+
     return () => {
       socket.disconnect();
     };
@@ -409,12 +461,7 @@ export default function Dashboard() {
     }
   }, [activities]);
 
-  // Update the effect
-  useEffect(() => {
-    if (activities.length > 0) {
-      setInsights(generateInsights(activities));
-    }
-  }, [activities]);
+  // Removed old insights generation effect
 
   // Add function to fetch daily stats
   const fetchDailyStats = useCallback(async () => {
@@ -422,30 +469,39 @@ export default function Dashboard() {
       // Fetch therapy sessions using the chat API
       const sessions = await getAllChatSessions();
 
-      // Fetch today's activities
-      const activitiesResponse = await fetch("/api/activities/today");
-      if (!activitiesResponse.ok) throw new Error("Failed to fetch activities");
-      const activities = await activitiesResponse.json();
+      // Fetch today's activities — safe: never throws, returns { count, activities }
+      let activitiesData: Activity[] = [];
+      let activitiesCount = 0;
+      try {
+        const activitiesResponse = await fetch("/api/activities/today");
+        if (activitiesResponse.ok) {
+          const data = await activitiesResponse.json();
+          activitiesData = Array.isArray(data?.activities) ? data.activities : [];
+          activitiesCount = data?.count ?? activitiesData.length;
+        }
+      } catch {
+        activitiesCount = 0;
+      }
 
       // Calculate mood score from activities
-      const moodEntries = activities.filter(
+      const moodEntries = activitiesData.filter(
         (a: Activity) => a.type === "mood" && a.moodScore !== null
       );
       const averageMood =
         moodEntries.length > 0
           ? Math.round(
-              moodEntries.reduce(
-                (acc: number, curr: Activity) => acc + (curr.moodScore || 0),
-                0
-              ) / moodEntries.length
-            )
+            moodEntries.reduce(
+              (acc: number, curr: Activity) => acc + (curr.moodScore || 0),
+              0
+            ) / moodEntries.length
+          )
           : null;
 
       setDailyStats({
         moodScore: averageMood,
         completionRate: 100,
         mindfulnessCount: sessions.length, // Total number of therapy sessions
-        totalActivities: activities.length,
+        totalActivities: activitiesCount,
         lastUpdated: new Date(),
       });
     } catch (error) {
@@ -461,37 +517,84 @@ export default function Dashboard() {
   }, [fetchDailyStats]);
 
   // Update wellness stats to reflect the changes
+  const getMoodLabel = (score: number): string => {
+    if (score <= 20) return "Very low";
+    if (score <= 40) return "Low";
+    if (score <= 60) return "Neutral";
+    if (score <= 80) return "Happy";
+    return "Excited";
+  };
+
+  /** Maps a mood score (0-100) to the data-mood tier string. */
+  const getMoodTier = (score: number): string => {
+    if (score <= 20) return "too-low";
+    if (score <= 40) return "low";
+    if (score <= 60) return "neutral";
+    if (score <= 80) return "happy";
+    return "excited";
+  };
+
+  // Restore persisted mood tier from localStorage on first mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("moodTier");
+    if (saved && saved !== "neutral") {
+      document.documentElement.setAttribute("data-mood", saved);
+    }
+  }, []);
+
+  // Apply data-mood attribute + persist whenever the live score changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (realtimeData.moodScore === null) return;
+    const tier = getMoodTier(realtimeData.moodScore);
+    if (tier === "neutral") {
+      document.documentElement.removeAttribute("data-mood");
+    } else {
+      document.documentElement.setAttribute("data-mood", tier);
+    }
+    localStorage.setItem("moodTier", tier);
+    refreshInsights(realtimeData.moodScore);
+  }, [realtimeData.moodScore, refreshInsights]);
+
   const wellnessStats = [
     {
       title: "Mood Score",
       value: realtimeData.moodScore !== null ? <CountUp end={realtimeData.moodScore} suffix="%" duration={1.5} /> : "No data",
       icon: Brain,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-      description: "Today's average mood",
+      color: "text-[#297194]",
+      bgColor: "bg-[#D1E1F7]",
+      description: realtimeData.moodScore !== null
+        ? `${getMoodLabel(realtimeData.moodScore)} today`
+        : "Today's average mood",
     },
     {
-      title: "Completion Rate",
-      value: "100%",
-      icon: Trophy,
-      color: "text-yellow-500",
-      bgColor: "bg-yellow-500/10",
-      description: "Perfect completion rate",
+      title: "Daily Check-in",
+      value: (
+        <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+          <span>{checkinRate.count}/{checkinRate.total}</span>
+          <span style={{ fontSize: "13px", opacity: 0.7 }}>days</span>
+        </div>
+      ),
+      icon: Calendar,
+      color: "text-[#EC993D]",
+      bgColor: "[background:var(--mood-surface)]",
+      description: checkinRate.label,
     },
     {
       title: "Therapy Sessions",
       value: <div className="flex items-center gap-1"><CountUp end={realtimeData.therapySessions} duration={1.5} /> <span className="text-sm font-normal">sessions</span></div>,
       icon: Heart,
-      color: "text-rose-500",
-      bgColor: "bg-rose-500/10",
+      color: "text-[#1e5870]",
+      bgColor: "[background:var(--mood-surface)]",
       description: "Total sessions completed",
     },
     {
       title: "Total Activities",
       value: <CountUp end={realtimeData.totalActivities} duration={1.5} />,
       icon: Activity,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
+      color: "text-[#297194]",
+      bgColor: "[background:var(--mood-surface)]",
       description: "Planned for today",
     },
   ];
@@ -507,10 +610,10 @@ export default function Dashboard() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
       await fetch(`${apiUrl}/api/dashboard/activity`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id || "default-user" })
+        body: JSON.stringify({ userId: user?._id || "default-user" })
       });
       toast.success("Activity logged!", { icon: "✅" });
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleStartTherapy = async () => {
@@ -518,9 +621,9 @@ export default function Dashboard() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
       await fetch(`${apiUrl}/api/dashboard/session`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id || "default-user" })
+        body: JSON.stringify({ userId: user?._id || "default-user" })
       });
-    } catch (err) {}
+    } catch (err) { }
     router.push("/therapy/new");
   };
 
@@ -531,7 +634,7 @@ export default function Dashboard() {
       await fetch(`${apiUrl}/api/dashboard/mood`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id || "default-user", moodValue: data.moodScore })
+        body: JSON.stringify({ userId: user?._id || "default-user", moodValue: data.moodScore })
       });
       toast.success("Mood updated successfully!", { icon: "✨" });
       setShowMoodModal(false);
@@ -541,6 +644,29 @@ export default function Dashboard() {
       setIsSavingMood(false);
     }
   };
+
+  /**
+   * Called by MoodForm immediately after a successful save.
+   * Sets the Mood Score card directly to the saved percentage — no page
+   * refresh needed. We intentionally skip a background re-fetch here because
+   * the backend dashboard aggregate takes time to update and would race-overwrite
+   * this optimistic update with stale data.
+   */
+  const handleMoodSaved = useCallback(
+    (newPercentage: number) => {
+      setRealtimeData((prev) => ({
+        ...prev,
+        moodScore: newPercentage,
+        lastUpdated: new Date(),
+      }));
+      // Record today's check-in
+      recordDailyCheckin();
+      // Update the check-in rate card in real time
+      setCheckinRate(getWeeklyCheckinRate());
+      refreshInsights(newPercentage);
+    },
+    []
+  );
 
   const handleAICheckIn = () => {
     logDashboardActivity();
@@ -568,288 +694,451 @@ export default function Dashboard() {
     [loadActivities]
   );
 
-  // Simple loading state
+  // WelcomeSplash must live outside any conditional branch so it is never
+  // unmounted when `mounted` flips from false → true.
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <>
+        <WelcomeSplash firstName={user?.name ? user.name.split(" ")[0] : "there"} />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Container className="pt-20 pb-8 space-y-6">
-        {/* Header Section */}
-        <div className="flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-2"
-          >
-            <h1 className="text-3xl font-bold text-foreground">
-              Welcome back, {user?.name || "there"}
-            </h1>
-            <p className="text-muted-foreground">
-              {currentTime.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </motion.div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
+    <>
+      <WelcomeSplash firstName={user?.name ? user.name.split(" ")[0] : "there"} />
+      <CrisisSupportModal
+        isOpen={showCrisisModal}
+        onClose={() => setShowCrisisModal(false)}
+        emergencyContact={emergencyContact}
+        userName={user?.name || ''}
+        onStartTherapy={() => router.push('/therapy/new')}
+      />
+      <div className="min-h-screen bg-background">
+        <Container className="pt-20 pb-8 space-y-6">
+          {/* Header Section */}
+          <div className="flex justify-between items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-2"
+            >
+              <h1 className="text-3xl font-bold text-foreground">
+                Welcome back, {user?.name || "there"}
+              </h1>
+              <p className="text-muted-foreground">
+                {currentTime.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </motion.div>
+            <div className="flex items-center gap-4">
+              <Button variant="outline" size="icon">
+                <Bell className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Main Grid Layout */}
-        <div className="space-y-6">
-          {/* Top Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Quick Actions Card */}
-            <Card className="border-primary/10 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
-              <CardContent className="p-6 relative">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-primary" />
+          {/* Main Grid Layout */}
+          <div className="space-y-6">
+            {/* Top Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Quick Actions Card */}
+              <Card className="border-[#D1E1F7] bg-[#ffffff] relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffffff] via-[#ffffff] to-transparent" />
+                <CardContent className="p-6 relative">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full [background:var(--mood-surface)] flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-[#297194]" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-[#1a4a5e]">Quick Actions</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Start your wellness journey
+                        </p>
+                      </div>
                     </div>
+
+                    <div className="grid gap-3">
+                      <Button
+                        variant="default"
+                        className={cn(
+                          "w-full justify-between items-center p-6 h-auto group/button",
+                          "bg-[#297194] hover:bg-[#1e5870] text-[#ffffff]",
+                          "transition-all duration-200 group-hover:translate-y-[-2px]"
+                        )}
+                        onClick={handleStartTherapy}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.2)] flex items-center justify-center">
+                            <MessageSquare className="w-4 h-4 text-[#ffffff]" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-semibold text-[#ffffff]">
+                              Start Therapy
+                            </div>
+                            <div className="text-xs text-[#ffffff]/80">
+                              Begin a new session
+                            </div>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover/button:opacity-100 transition-opacity">
+                          <ArrowRight className="w-5 h-5 text-[#ffffff]" />
+                        </div>
+                      </Button>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "flex flex-col h-[120px] px-4 py-3 group/mood border-[#D1E1F7] hover:border-[#297194]/50 [background:var(--mood-bg)] hover:[background:var(--mood-surface)]",
+                            "justify-center items-center text-center",
+                            "transition-all duration-200 group-hover:translate-y-[-2px]"
+                          )}
+                          onClick={() => setShowMoodModal(true)}
+                        >
+                          <div className="w-10 h-10 rounded-full [background:var(--mood-surface)] flex items-center justify-center mb-2">
+                            <Heart className="w-5 h-5 text-[#297194]" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">Track Mood</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              How are you feeling?
+                            </div>
+                          </div>
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "flex flex-col h-[120px] px-4 py-3 group/ai border-[#D1E1F7] hover:border-[#297194]/50 [background:var(--mood-bg)] hover:[background:var(--mood-surface)]",
+                            "justify-center items-center text-center",
+                            "transition-all duration-200 group-hover:translate-y-[-2px]"
+                          )}
+                          onClick={handleAICheckIn}
+                        >
+                          <div className="w-10 h-10 rounded-full [background:var(--mood-surface)] flex items-center justify-center mb-2">
+                            <BrainCircuit className="w-5 h-5 text-[#297194]" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">Check-in</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              Quick wellness check
+                            </div>
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Today's Overview Card */}
+              <Card className="border-[#D1E1F7] bg-[#ffffff]">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-lg">Quick Actions</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Start your wellness journey
-                      </p>
+                      <CardTitle>Today's Overview</CardTitle>
+                      <CardDescription>
+                        Your wellness metrics for{" "}
+                        {format(new Date(), "MMMM d, yyyy")}
+                      </CardDescription>
                     </div>
-                  </div>
-
-                  <div className="grid gap-3">
                     <Button
-                      variant="default"
-                      className={cn(
-                        "w-full justify-between items-center p-6 h-auto group/button",
-                        "bg-gradient-to-r from-primary/90 to-primary hover:from-primary hover:to-primary/90",
-                        "transition-all duration-200 group-hover:translate-y-[-2px]"
-                      )}
-                      onClick={handleStartTherapy}
+                      variant="ghost"
+                      size="icon"
+                      onClick={fetchDailyStats}
+                      className="h-8 w-8"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <div className="font-semibold text-white">
-                            Start Therapy
-                          </div>
-                          <div className="text-xs text-white/80">
-                            Begin a new session
-                          </div>
-                        </div>
-                      </div>
-                      <div className="opacity-0 group-hover/button:opacity-100 transition-opacity">
-                        <ArrowRight className="w-5 h-5 text-white" />
-                      </div>
+                      <Loader2 className={cn("h-4 w-4", "animate-spin")} />
                     </Button>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "flex flex-col h-[120px] px-4 py-3 group/mood hover:border-primary/50",
-                          "justify-center items-center text-center",
-                          "transition-all duration-200 group-hover:translate-y-[-2px]"
-                        )}
-                        onClick={() => setShowMoodModal(true)}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center mb-2">
-                          <Heart className="w-5 h-5 text-rose-500" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">Track Mood</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            How are you feeling?
-                          </div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "flex flex-col h-[120px] px-4 py-3 group/ai hover:border-primary/50",
-                          "justify-center items-center text-center",
-                          "transition-all duration-200 group-hover:translate-y-[-2px]"
-                        )}
-                        onClick={handleAICheckIn}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
-                          <BrainCircuit className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">Check-in</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            Quick wellness check
-                          </div>
-                        </div>
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Today's Overview Card */}
-            <Card className="border-primary/10">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Today's Overview</CardTitle>
-                    <CardDescription>
-                      Your wellness metrics for{" "}
-                      {format(new Date(), "MMMM d, yyyy")}
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={fetchDailyStats}
-                    className="h-8 w-8"
-                  >
-                    <Loader2 className={cn("h-4 w-4", "animate-spin")} />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {wellnessStats.map((stat) => (
-                    <div
-                      key={stat.title}
-                      className={cn(
-                        "p-4 rounded-lg transition-all duration-200 hover:scale-[1.02]",
-                        stat.bgColor
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <stat.icon className={cn("w-5 h-5", stat.color)} />
-                        <p className="text-sm font-medium">{stat.title}</p>
-                      </div>
-                      <p className="text-2xl font-bold mt-2">{stat.value}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {stat.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 text-xs text-muted-foreground text-right relative">
-                  <span className="relative z-10 transition-opacity flex items-center justify-end gap-1">
-                    Last updated: {format(realtimeData.lastUpdated, "h:mm:ss a")}
-                    <span className="flex rounded-full bg-emerald-500/20 px-1.5 py-0.5 animate-pulse text-[10px] text-emerald-500 font-bold ml-1">LIVE</span>
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Insights Card */}
-            <Card className="border-primary/10">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BrainCircuit className="w-5 h-5 text-primary" />
-                  Insights
-                </CardTitle>
-                <CardDescription>
-                  Personalized recommendations based on your activity patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {insights.length > 0 ? (
-                    insights.map((insight, index) => (
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-3">
+                    {wellnessStats.map((stat) => (
                       <div
-                        key={index}
+                        key={stat.title}
                         className={cn(
-                          "p-4 rounded-lg space-y-2 transition-all hover:scale-[1.02]",
-                          insight.priority === "high"
-                            ? "bg-primary/10"
-                            : insight.priority === "medium"
-                            ? "bg-primary/5"
-                            : "bg-muted"
+                          "p-4 rounded-lg transition-all duration-200 hover:scale-[1.02]",
+                          stat.bgColor
                         )}
                       >
                         <div className="flex items-center gap-2">
-                          <insight.icon className="w-5 h-5 text-primary" />
-                          <p className="font-medium">{insight.title}</p>
+                          <stat.icon className={cn("w-5 h-5", stat.color)} />
+                          <p className="text-sm font-medium">{stat.title}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {insight.description}
+                        <div className="text-2xl font-bold mt-2">{stat.value}</div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {stat.description}
                         </p>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-muted-foreground py-8">
-                      <Activity className="w-8 h-8 mx-auto mb-3 opacity-50" />
-                      <p>
-                        Complete more activities to receive personalized
-                        insights
-                      </p>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-xs text-muted-foreground text-right relative">
+                    <span className="relative z-10 transition-opacity flex items-center justify-end gap-1">
+                      Last updated: {format(realtimeData.lastUpdated, "h:mm:ss a")}
+                      <span className="flex rounded-full bg-[rgba(236,153,61,0.2)] px-1.5 py-0.5 animate-pulse text-[10px] text-[#EC993D] font-bold ml-1">LIVE</span>
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Insights Card */}
+              <Card className="border-primary/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BrainCircuit className="w-5 h-5 text-primary" />
+                    Insights
+                  </CardTitle>
+                  <CardDescription>
+                    Personalized recommendations based on your activity patterns
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Suggestion card */}
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      <div style={{ background: '#e2e8f0', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
+                        {insights.suggestion.type === 'game' ? '🎮' : '✦'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                          <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: 0 }}>
+                            {insights.suggestion.title}
+                          </h4>
+                        </div>
+                        <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                          {insights.suggestion.description}
+                        </p>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+                          {insights.suggestion.duration && (
+                            <span style={{ fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
+                              ⏱ {insights.suggestion.duration}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const target = insights.suggestion.actionTarget;
+                            if (!target) return;
+
+                            if (target.startsWith('modal:')) {
+                              const modalName = target.replace('modal:', '');
+
+                              switch (modalName) {
+                                case 'breathing':
+                                  setExternalGame('breathing');
+                                  document.getElementById('anxiety-activities')?.scrollIntoView({ behavior: 'smooth' });
+                                  break;
+                                case 'ocean-waves':
+                                  setExternalGame('waves');
+                                  document.getElementById('anxiety-activities')?.scrollIntoView({ behavior: 'smooth' });
+                                  break;
+                                case 'mindful-forest':
+                                  setExternalGame('forest');
+                                  document.getElementById('anxiety-activities')?.scrollIntoView({ behavior: 'smooth' });
+                                  break;
+                                case 'zen-garden':
+                                  setExternalGame('garden');
+                                  document.getElementById('anxiety-activities')?.scrollIntoView({ behavior: 'smooth' });
+                                  break;
+                                case 'support':
+                                  setShowCrisisModal(true);
+                                  break;
+                              }
+                            } else if (target.startsWith('/games/')) {
+                              const gameRoutes: Record<string, string> = {
+                                'Memory Tiles': '/games/memory-tiles',
+                                'Reaction Challenge': '/games/reaction-challenge',
+                                'Falling Leaves': '/games/falling-leaves',
+                                'Bubble Pop': '/games/bubble-pop',
+                              };
+                              const route = gameRoutes[insights.suggestion.title];
+                              if (route) {
+                                router.push(route);
+                              } else {
+                                toast('Coming soon — this feature is being built!', { icon: '🚧' });
+                              }
+                            } else if (target.startsWith('/activities/')) {
+                              toast('Coming soon — this feature is being built!', { icon: '🚧' });
+                            } else {
+                              try {
+                                router.push(target);
+                              } catch (e) {
+                                toast('Coming soon — this feature is being built!', { icon: '🚧' });
+                              }
+                            }
+                          }}
+                          style={{
+                            width: '100%', background: '#2563a8', color: '#fff',
+                            border: 'none', borderRadius: '7px', padding: '6px 10px',
+                            fontSize: '11px', fontWeight: 500, cursor: 'pointer'
+                          }}
+                        >
+                          {insights.suggestion.actionLabel}
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left side - Spans 2 columns */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Anxiety Games - Now directly below Fitbit */}
-              <AnxietyGames onGamePlayed={handleGamePlayed} />
+                    {/* Affirmation or Therapist Tip */}
+                    <div style={{ background: insights.secondItem.type === 'tip' ? '#f0fdf4' : '#fffbeb', border: `1px solid ${insights.secondItem.type === 'tip' ? '#bbf7d0' : '#fef3c7'}`, borderRadius: '12px', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: insights.secondItem.type === 'tip' ? '#166534' : '#b45309', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {insights.secondItem.type === 'tip' ? '💡 Therapist tip' : '🌱 Affirmation'}
+                      </span>
+                      <span style={{ fontSize: '13px', color: '#334155', lineHeight: 1.4, fontStyle: 'italic' }}>
+                        "{insights.secondItem.text}"
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </div>
-      </Container>
 
-      {/* Mood tracking modal */}
-      <Dialog open={showMoodModal} onOpenChange={setShowMoodModal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>How are you feeling?</DialogTitle>
-            <DialogDescription>
-              Move the slider to track your current mood
-            </DialogDescription>
-          </DialogHeader>
-          <MoodForm onSuccess={() => setShowMoodModal(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* AI check-in chat */}
-      {showCheckInChat && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
-          <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background border-l shadow-lg">
-            <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b">
-                <h3 className="font-semibold">AI Check-in</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowCheckInChat(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left side - Spans 2 columns */}
+              <div id="anxiety-activities" className="lg:col-span-3 space-y-6">
+                {/* Anxiety Games - Now directly below Fitbit */}
+                <AnxietyGames
+                  onGamePlayed={handleGamePlayed}
+                  externalActiveGame={externalGame}
+                  onExternalGameHandled={() => setExternalGame(null)}
+                />
+                
+                {/* Calming Mini-Games */}
+                <Card className="border border-slate-100 shadow-sm bg-white overflow-hidden transition-all duration-300">
+                  <CardHeader className="pb-3 border-b border-slate-50/50 bg-slate-50/30">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-[#f0f6fc] rounded-lg">
+                        <span className="text-xl">🍃</span>
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-[#1e3a5f]">Calming Wellness Games</CardTitle>
+                        <CardDescription className="text-[13px] text-slate-500">Low-pressure, touch-based games to help you unwind and focus.</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-5 pb-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Game 1 */}
+                      <div 
+                        onClick={() => router.push('/games/falling-leaves')}
+                        className="group relative flex flex-col items-center justify-center p-6 border border-[#e2eaf4] rounded-xl bg-white hover:bg-[#f0f6fc] hover:border-[#2563a8] hover:shadow-[0_4px_16px_rgba(37,99,168,0.10)] hover:-translate-y-[2px] cursor-pointer transition-all duration-200"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-[#f0f6fc] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-3xl">🍂</span>
+                        </div>
+                        <h3 className="font-semibold text-[#1e3a5f] mb-1">Falling Leaves</h3>
+                        <p className="text-xs text-slate-500 text-center">Gently catch the falling leaves. No rush, no pressure.</p>
+                      </div>
+                      
+                      {/* Game 2 */}
+                      <div 
+                        onClick={() => router.push('/games/bubble-pop')}
+                        className="group relative flex flex-col items-center justify-center p-6 border border-[#e2eaf4] rounded-xl bg-white hover:bg-[#f0f6fc] hover:border-[#2563a8] hover:shadow-[0_4px_16px_rgba(37,99,168,0.10)] hover:-translate-y-[2px] cursor-pointer transition-all duration-200"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-[#f0f6fc] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-3xl">🫧</span>
+                        </div>
+                        <h3 className="font-semibold text-[#1e3a5f] mb-1">Bubble Pop</h3>
+                        <p className="text-xs text-slate-500 text-center">Pop the bubbles at your own pace. Just breathe and tap.</p>
+                      </div>
+                      
+                      {/* Game 3 */}
+                      <div 
+                        onClick={() => router.push('/games/memory-tiles')}
+                        className="group relative flex flex-col items-center justify-center p-6 border border-[#e2eaf4] rounded-xl bg-white hover:bg-[#f0f6fc] hover:border-[#2563a8] hover:shadow-[0_4px_16px_rgba(37,99,168,0.10)] hover:-translate-y-[2px] cursor-pointer transition-all duration-200"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-[#f0f6fc] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-3xl">🧩</span>
+                        </div>
+                        <h3 className="font-semibold text-[#1e3a5f] mb-1">Memory Tiles</h3>
+                        <p className="text-xs text-slate-500 text-center">Flip tiles and find matching pairs. A gentle brain workout.</p>
+                      </div>
+                      
+                      {/* Game 4 */}
+                      <div 
+                        onClick={() => router.push('/games/reaction-challenge')}
+                        className="group relative flex flex-col items-center justify-center p-6 border border-[#e2eaf4] rounded-xl bg-white hover:bg-[#f0f6fc] hover:border-[#2563a8] hover:shadow-[0_4px_16px_rgba(37,99,168,0.10)] hover:-translate-y-[2px] cursor-pointer transition-all duration-200"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-[#f0f6fc] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-3xl">⚡</span>
+                        </div>
+                        <h3 className="font-semibold text-[#1e3a5f] mb-1">Reaction Challenge</h3>
+                        <p className="text-xs text-slate-500 text-center">Tap the circle as fast as you can. Light, fun, satisfying.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="flex-1 overflow-y-auto p-4"></div>
+            </div>
+
+            {/* Footer Area */}
+            <div className="mt-12 mb-4 text-center">
+              <button
+                onClick={() => setShowCrisisModal(true)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '12px', color: '#6b7280',
+                  textDecoration: 'underline', textDecorationStyle: 'dotted'
+                }}
+              >
+                🤝 Need support? Crisis helplines available 24/7
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        </Container>
 
-      <ActivityLogger
-        open={showActivityLogger}
-        onOpenChange={setShowActivityLogger}
-        onActivityLogged={loadActivities}
-      />
-    </div>
+        {/* Mood tracking modal */}
+        <Dialog open={showMoodModal} onOpenChange={setShowMoodModal}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>How are you feeling?</DialogTitle>
+              <DialogDescription>
+                Move the slider to track your current mood
+              </DialogDescription>
+            </DialogHeader>
+            <MoodForm
+              onSuccess={() => setShowMoodModal(false)}
+              onMoodSaved={handleMoodSaved}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* AI check-in chat */}
+        {showCheckInChat && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
+            <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background border-l shadow-lg">
+              <div className="flex h-full flex-col">
+                <div className="flex items-center justify-between px-4 py-3 border-b">
+                  <h3 className="font-semibold">AI Check-in</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowCheckInChat(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ActivityLogger
+          open={showActivityLogger}
+          onOpenChange={setShowActivityLogger}
+          onActivityLogged={loadActivities}
+        />
+      </div>
+    </>
   );
 }

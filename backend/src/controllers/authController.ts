@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, emergencyContactName, emergencyContactPhone, relationship } = req.body;
     if (!name || !email || !password) {
       return res
         .status(400)
@@ -23,7 +23,16 @@ export const register = async (req: Request, res: Response) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     // Create user
-    const user = new User({ name: name.trim(), email: normalizedEmail, password: hashedPassword });
+    const user = new User({ 
+      name: name.trim(), 
+      email: normalizedEmail, 
+      password: hashedPassword,
+      emergencyContact: {
+        name: emergencyContactName || '',
+        phone: emergencyContactPhone || '',
+        relationship: relationship || ''
+      }
+    });
     await user.save();
     // Respond
     res.status(201).json({
@@ -118,5 +127,51 @@ export const logout = async (req: Request, res: Response) => {
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?._id;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const { name, dob, gender, phone, profilePhoto, emergencyContactName, emergencyContactPhone, relationship, emergencyContactEmail } = req.body;
+    
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (name !== undefined) user.name = name;
+    if (dob !== undefined) user.set('dob', dob);
+    if (gender !== undefined) user.set('gender', gender);
+    if (phone !== undefined) user.set('phone', phone);
+    if (profilePhoto !== undefined) user.set('profilePhoto', profilePhoto);
+
+    if (!user.emergencyContact) {
+      user.emergencyContact = { name: '', phone: '', relationship: '', email: '' } as any;
+    }
+    
+    if (emergencyContactName !== undefined) user.emergencyContact!.name = emergencyContactName;
+    if (emergencyContactPhone !== undefined) user.emergencyContact!.phone = emergencyContactPhone;
+    if (relationship !== undefined) user.emergencyContact!.relationship = relationship;
+    if (emergencyContactEmail !== undefined) (user.emergencyContact as any).email = emergencyContactEmail;
+
+    await user.save();
+    
+    res.json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        dob: user.get('dob'),
+        gender: user.get('gender'),
+        phone: user.get('phone'),
+        profilePhoto: user.get('profilePhoto'),
+        emergencyContact: user.emergencyContact
+      },
+      message: "Profile updated successfully"
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

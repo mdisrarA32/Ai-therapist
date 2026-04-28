@@ -6,7 +6,12 @@ import { inngest } from "../inngest/client";
 import { User } from "../models/User";
 import { InngestSessionResponse, InngestEvent } from "../types/inngest";
 import { Types } from "mongoose";
-import { getGeminiModel, analyzeMessage } from "../services/GeminiService";
+import { analyzeMessage } from "../services/GeminiService";
+import { TherapyService } from "../services/TherapyService";
+import { detectCrisis } from '../services/CrisisDetectionService';
+import { 
+  sendEmergencyAlert
+} from '../lib/emergencyAlert';
 
 // Create a new chat session
 export const createChatSession = async (req: Request, res: Response) => {
@@ -53,12 +58,53 @@ export const createChatSession = async (req: Request, res: Response) => {
 
 let lastCall = 0;
 
+// Session guard to prevent spam
+export const sessionAlertSent: Record<string, boolean> = {};
+export const sessionCrisisCount: Record<string, number> = {};
+
+const crisisPhrases = [
+  // English
+  "i want to die", "i want to kill myself", "kill myself",
+  "end my life", "cant live anymore", "can't live anymore",
+  "harm myself", "suicide", "end it all",
+  // Hindi Roman
+  "marna chahta hu", "marna chahti hu", "jaan se marna",
+  "khud ko marna", "jeena nahi chahta", "jeena nahi chahti",
+  "zindagi khatam", "maut chahiye", "khud ko khatam",
+  "mar jaunga", "mar jaungi", "jaan de dunga", "jaan de dungi",
+  // Hindi Devanagari
+  "मरना चाहता हूं", "खुद को मारना", "जान से मारना",
+  "जीना नहीं चाहता", "मौत चाहिए"
+];
+
+function isMessageCrisis(message: string): boolean {
+  const lower = message.toLowerCase().trim();
+  return crisisPhrases.some(phrase => lower.includes(phrase));
+}
+
 // Send a message in the chat session
 export const sendMessage = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
     const { message } = req.body;
     const userId = new Types.ObjectId(req.user.id);
+    const uidStr = userId.toString();
+
+    // --- Emergency Alert System Logic ---
+    const isCrisis = isMessageCrisis(message);
+
+    if (isCrisis) {
+      sessionCrisisCount[sessionId] = (sessionCrisisCount[sessionId] ?? 0) + 1;
+
+      if (sessionCrisisCount[sessionId] >= 2 && !sessionAlertSent[sessionId]) {
+        sessionAlertSent[sessionId] = true;
+        setTimeout(() => sendEmergencyAlert(uidStr), 1000);
+      }
+    } else {
+      // Reset count if user is no longer in crisis
+      sessionCrisisCount[sessionId] = 0;
+    }
+    // ------------------------------------
 
     logger.info("Processing message:", { sessionId, message });
 
@@ -86,7 +132,7 @@ export const sendMessage = async (req: Request, res: Response) => {
         message,
         history: session.messages,
         memory: {
-          userProfile: { emotionalState: [], riskLevel: 0, preferences: {} },
+          userProfile: { emotionalState: [], riskLevel: isCrisis ? 5 : 0, preferences: {} },
           sessionContext: { conversationThemes: [], currentTechnique: null },
         },
         goals: [],
@@ -103,6 +149,8 @@ export const sendMessage = async (req: Request, res: Response) => {
     await inngest.send(event);
 
     let response = "";
+    let detectedLanguageResult = "en";
+    let languageLabelResult = "English";
     let analysis = {
       emotionalState: "neutral",
       themes: [],
@@ -124,6 +172,24 @@ export const sendMessage = async (req: Request, res: Response) => {
         "progressIndicators": ["string"]
       }`;
 
+    const crisisResult = detectCrisis(message);
+
+    // If crisis detected, override the system prompt to give crisis response
+    if (crisisResult.isCrisis) {
+      const crisisResponse = crisisResult.detectedLanguage === 'hi'
+        ? `मैं आपकी बात सुन रहा हूं और आपकी परवाह करता हूं। आप अभी बहुत दर्द में हैं। कृपया अभी iCall हेल्पलाइन पर कॉल करें: 9152987821। आप अकेले नहीं हैं — मदद उपलब्ध है।`
+        : `I hear you and I care deeply about you. You are in tremendous pain right now. Please call iCall helpline immediately: 9152987821. You are not alone — help is available right now.`;
+
+      // Send response WITH crisis flag so frontend shows popup
+      return res.json({
+        response: crisisResponse,
+        isCrisis: true,
+        crisisSeverity: crisisResult.severity,
+        detectedLanguage: crisisResult.detectedLanguage,
+        languageLabel: crisisResult.detectedLanguage === 'hi' ? 'हिंदी' : 'English'
+      });
+    }
+
     try {
       logger.info("Attempting Gemini API for chat message analysis...");
       analysis = await analyzeMessage(message);
@@ -139,61 +205,42 @@ export const sendMessage = async (req: Request, res: Response) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const ai = getGeminiModel();
-
-    const prompt = `
-You are an empathetic AI therapist.
-
-Rules:
-- Be calm, supportive, non-judgmental
-- Keep responses short (2-4 sentences)
-- Do NOT give medical diagnosis
-- Ask one gentle follow-up question
-
-User emotional state: ${analysis.emotionalState}
-Risk level: ${analysis.riskLevel}
-
-User message:
-"${message}"
-`;
-
     try {
-      logger.info("Attempting Gemini API for chat response streaming...");
-      const result = await ai.models.generateContentStream({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
+      logger.info("Attempting RAG-augmented TherapyService for chat response...");
+      
+      const therapyPayload = await TherapyService.processTherapyMessage(
+        message, 
+        session.messages.slice(-5),
+        analysis.riskLevel > 1 ? "HIGH" : "LOW",
+        "NORMAL"
+      );
 
-      for await (const chunk of result) {
-        const text = chunk.text;
-        if (text) {
-          response += text;
-          res.write(text);
-        }
-      }
+      response = therapyPayload.reply;
+      detectedLanguageResult = therapyPayload.detectedLanguage || "en";
+      languageLabelResult = therapyPayload.languageLabel || "English";
+      
+      // Pass language back to client safely while streaming
+      res.setHeader("X-Detected-Language", detectedLanguageResult);
+      res.setHeader("X-Language-Label", encodeURIComponent(languageLabelResult));
+      res.setHeader("Access-Control-Expose-Headers", "X-Detected-Language, X-Language-Label");
+
+      res.write(response);
       res.end();
+      
+      analysis.emotionalState = therapyPayload.detectedEmotion;
+
     } catch (apiError: any) {
-      logger.error("API Error (Gemini):", apiError);
+      logger.error("API Error (TherapyService):", apiError);
       if (!res.headersSent) {
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.setHeader("Transfer-Encoding", "chunked");
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
       }
-      try {
-        const fallback = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: prompt,
-        });
-        response = fallback.text || "";
-        res.write(response);
-        res.end();
-      } catch (fallbackError) {
-        const fallback = "I'm having a brief moment of difficulty processing, but I am still here and listening. Please continue to share whenever you feel ready.";
-        response = fallback;
-        res.write(fallback);
-        res.end();
-      }
+      const fallback = "I'm having a brief moment of difficulty processing, but I am still here and listening. Please continue to share whenever you feel ready.";
+      response = fallback;
+      res.write(fallback);
+      res.end();
     }
 
     // Note: since we pipe directly, we don't know the full response easily unless we capture it, 
@@ -211,6 +258,8 @@ User message:
       timestamp: new Date(),
       metadata: {
         analysis,
+        detectedLanguage: detectedLanguageResult,
+        languageLabel: languageLabelResult,
         progress: {
           emotionalState: analysis.emotionalState,
           riskLevel: analysis.riskLevel,
@@ -315,5 +364,37 @@ export const getAllChatSessions = async (req: Request, res: Response) => {
   } catch (error) {
     logger.error("Error fetching all chat sessions:", error);
     res.status(500).json({ message: "Error fetching chat sessions" });
+  }
+};
+
+const sosLastSent: Map<string, number> = new Map();
+
+export const handleSOS = async (req: Request, res: Response) => {
+  try {
+    const userId = req.body.userId || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const uidStr = userId.toString();
+    const now = Date.now();
+    
+    if (sosLastSent.has(uidStr)) {
+      const diff = now - sosLastSent.get(uidStr)!;
+      if (diff < 5 * 60 * 1000) {
+        return res.status(429).json({ 
+          error: "SOS already sent. Please wait 5 minutes." 
+        });
+      }
+    }
+    sosLastSent.set(uidStr, now);
+    
+    // Fire and forget
+    sendEmergencyAlert(uidStr, 'sos').catch(console.error);
+
+    res.json({ success: true, message: "Emergency alert sent" });
+  } catch (error) {
+    logger.error("Error in handleSOS:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

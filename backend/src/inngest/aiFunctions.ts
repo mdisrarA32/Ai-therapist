@@ -1,8 +1,6 @@
 import { inngest } from "./client";
-import { getGeminiModel } from "../services/GeminiService";
+import Groq from 'groq-sdk';
 import { logger } from "../utils/logger";
-
-const ai = getGeminiModel();
 
 // Function to handle chat message processing
 export const processChatMessage = inngest.createFunction(
@@ -51,11 +49,14 @@ export const processChatMessage = inngest.createFunction(
             "progressIndicators": ["string"]
           }`;
 
-          const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
+          const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+          const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "system", content: prompt }],
+            max_tokens: 1024,
+            temperature: 0.1
           });
-          const text = (result.text || "").trim();
+          const text = (completion.choices[0]?.message?.content || "").trim();
 
           logger.info("Received analysis from Gemini:", { text });
 
@@ -120,11 +121,14 @@ export const processChatMessage = inngest.createFunction(
           4. Maintains professional boundaries
           5. Considers safety and well-being`;
 
-          const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
+          const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+          const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "system", content: prompt }],
+            max_tokens: 1024,
+            temperature: 0.7
           });
-          const responseText = (result.text || "").trim();
+          const responseText = (completion.choices[0]?.message?.content || "").trim();
 
           logger.info("Generated response:", { responseText });
           return responseText;
@@ -188,11 +192,14 @@ export const analyzeTherapySession = inngest.createFunction(
         
         Format the response as a JSON object.`;
 
-        const result = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: prompt,
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const completion = await groq.chat.completions.create({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: prompt }],
+          max_tokens: 1024,
+          temperature: 0.1
         });
-        const text = result.text || "";
+        const text = completion.choices[0]?.message?.content || "";
 
         return JSON.parse(text);
       });
@@ -258,11 +265,14 @@ export const generateActivityRecommendations = inngest.createFunction(
         
         Format the response as a JSON object.`;
 
-          const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
+          const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+          const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "system", content: prompt }],
+            max_tokens: 1024,
+            temperature: 0.7
           });
-          const text = result.text || "";
+          const text = completion.choices[0]?.message?.content || "";
 
           return JSON.parse(text);
         }

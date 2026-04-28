@@ -94,9 +94,9 @@ export function FeatureSection() {
   };
 
   return (
-    <section className="relative py-24 px-4 overflow-hidden">
+    <section className="relative py-24 px-4 overflow-hidden bg-[#E7F2F7]">
       {/* Background glow tailored to features */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-b from-[#2dd4bf]/5 via-[#4ade80]/5 to-purple-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-b from-primary/5 via-[#D1E1F7]/30 to-[#8bb8c8]/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10 w-full">
         
@@ -109,7 +109,7 @@ export function FeatureSection() {
           className="text-center mb-16 space-y-4"
         >
           <div className="inline-block relative">
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight pb-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1a4a5e] tracking-tight pb-2">
               How Aura Helps You
             </h2>
             <motion.div 
@@ -117,10 +117,10 @@ export function FeatureSection() {
               whileInView={{ scaleX: 1 }}
               transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
               viewport={{ once: true }}
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-1/2 bg-gradient-to-r from-transparent via-[#2dd4bf] to-transparent origin-center"
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-1/2 bg-gradient-to-r from-transparent via-[#297194] to-transparent origin-center"
             />
           </div>
-          <p className="text-lg text-slate-400 font-medium max-w-2xl mx-auto">
+          <p className="text-lg text-[#64748b] font-medium max-w-2xl mx-auto">
             Experience a new kind of emotional support, powered by empathetic AI
           </p>
         </motion.div>
@@ -156,9 +156,9 @@ export function FeatureSection() {
           viewport={{ once: true }}
           className="mt-20 flex justify-center"
         >
-          <button className="relative group overflow-hidden rounded-full py-3.5 px-8 shadow-[0_0_20px_rgba(45,212,191,0.2)] animate-pulse hover:animate-none transition-all duration-300 transform hover:scale-105 active:scale-95">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#2dd4bf] to-[#4ade80] opacity-90 group-hover:opacity-100 transition-opacity" />
-            <span className="relative z-10 text-slate-900 font-semibold tracking-wide flex items-center justify-center gap-2">
+          <button className="relative group overflow-hidden rounded-full py-3.5 px-8 shadow-[0_0_20px_rgba(41,113,148,0.2)] animate-pulse hover:animate-none transition-all duration-300 transform hover:scale-105 active:scale-95">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#297194] to-[#1e5870] opacity-90 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10 text-white font-semibold tracking-wide flex items-center justify-center gap-2">
               Ready to start your journey?
             </span>
           </button>

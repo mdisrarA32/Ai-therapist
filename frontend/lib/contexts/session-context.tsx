@@ -8,6 +8,12 @@ interface User {
   _id: string;
   name: string;
   email: string;
+  emergencyContact?: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+    email?: string;
+  };
 }
 
 interface SessionContextType {
@@ -45,11 +51,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         console.log("SessionContext: Response status:", response.status);
 
         const data = response.data;
-        console.log("SessionContext: User data received:", data);
+        console.log("SessionContext: User data received successfully");
         const userData = data.user;
         const { password, ...safeUserData } = userData;
         setUser(safeUserData);
-        console.log("SessionContext: User state updated:", safeUserData);
+        console.log("SessionContext: User authenticated:", !!safeUserData);
       } catch (err) {
         console.log("SessionContext: Failed to get user data");
         setUser(null);
@@ -74,6 +80,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error);
     } finally {
       localStorage.removeItem("token");
+      localStorage.removeItem("aura_splash_shown_v2");
+      localStorage.removeItem("theme");
       setUser(null);
       router.push("/");
     }

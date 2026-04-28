@@ -46,7 +46,7 @@ export function FAQSection() {
   return (
     <section className="relative py-24 px-4 overflow-hidden">
       {/* Soft glowing radial gradient in center */}
-      <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-b from-blue-500/10 via-purple-500/10 to-teal-500/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-b from-primary/10 via-[#D1E1F7]/30 to-[#8bb8c8]/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10">
         <motion.div

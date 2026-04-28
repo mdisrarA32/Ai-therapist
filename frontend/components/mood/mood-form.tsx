@@ -11,25 +11,32 @@ import apiClient from "@/lib/api/client";
 
 interface MoodFormProps {
   onSuccess?: () => void;
+  /** Called with the saved mood percentage (0-100) immediately after a successful save */
+  onMoodSaved?: (percentage: number) => void;
 }
 
-export function MoodForm({ onSuccess }: MoodFormProps) {
-  const [moodScore, setMoodScore] = useState(50);
+// Maps the 5 mood positions to display percentages
+const MOOD_PERCENTAGES = [10, 30, 50, 75, 100] as const;
+
+export function MoodForm({ onSuccess, onMoodSaved }: MoodFormProps) {
+  // Index into MOOD_PERCENTAGES (0 = Very Low, 4 = Excited)
+  const [moodIndex, setMoodIndex] = useState(2); // default: Neutral → 50%
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user, isAuthenticated, loading } = useSession();
   const router = useRouter();
 
+  const moodPercentage = MOOD_PERCENTAGES[moodIndex];
+
   const emotions = [
-    { value: 0, label: "😔", description: "Very Low" },
-    { value: 25, label: "😕", description: "Low" },
-    { value: 50, label: "😊", description: "Neutral" },
-    { value: 75, label: "😃", description: "Good" },
-    { value: 100, label: "🤗", description: "Great" },
+    { index: 0, label: "😔", description: "Very Low",  percentage: 10  },
+    { index: 1, label: "😕", description: "Low",       percentage: 30  },
+    { index: 2, label: "😊", description: "Neutral",   percentage: 50  },
+    { index: 3, label: "😃", description: "Happy",     percentage: 75  },
+    { index: 4, label: "🤗", description: "Excited",   percentage: 100 },
   ];
 
-  const currentEmotion =
-    emotions.find((em) => Math.abs(moodScore - em.value) < 15) || emotions[2];
+  const currentEmotion = emotions[moodIndex];
 
   const handleSubmit = async () => {
     console.log("MoodForm: Starting submission");
@@ -48,7 +55,8 @@ export function MoodForm({ onSuccess }: MoodFormProps) {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post("/mood", { score: moodScore });
+      // Save the percentage value (10/30/50/75/100) to the backend
+      const response = await apiClient.post("/mood", { score: moodPercentage });
       console.log("MoodForm: Response status:", response.status);
 
       const data = response.data;
@@ -56,10 +64,12 @@ export function MoodForm({ onSuccess }: MoodFormProps) {
 
       toast({
         title: "Mood tracked successfully!",
-        description: "Your mood has been recorded.",
+        description: `Mood saved as ${moodPercentage}% (${currentEmotion.description}).`,
       });
 
-      // Call onSuccess to close the modal
+      // Notify the dashboard with the actual percentage so it can update instantly
+      onMoodSaved?.(moodPercentage);
+      // Close the modal
       onSuccess?.();
     } catch (error) {
       console.error("MoodForm: Error:", error);
@@ -89,26 +99,29 @@ export function MoodForm({ onSuccess }: MoodFormProps) {
         <div className="flex justify-between px-2">
           {emotions.map((em) => (
             <div
-              key={em.value}
-              className={`cursor-pointer transition-opacity ${Math.abs(moodScore - em.value) < 15
-                  ? "opacity-100"
-                  : "opacity-50"
-                }`}
-              onClick={() => setMoodScore(em.value)}
+              key={em.index}
+              className={`cursor-pointer transition-opacity ${
+                moodIndex === em.index ? "opacity-100" : "opacity-50"
+              }`}
+              onClick={() => setMoodIndex(em.index)}
             >
               <div className="text-2xl">{em.label}</div>
             </div>
           ))}
         </div>
 
+        {/* 5-step slider snapping to the 5 positions */}
         <Slider
-          value={[moodScore]}
-          onValueChange={(value) => setMoodScore(value[0])}
+          value={[moodIndex]}
+          onValueChange={(value) => setMoodIndex(value[0])}
           min={0}
-          max={100}
+          max={4}
           step={1}
           className="py-4"
         />
+        <p className="text-xs text-center text-muted-foreground">
+          Score: {moodPercentage}%
+        </p>
       </div>
 
       {/* Submit button */}

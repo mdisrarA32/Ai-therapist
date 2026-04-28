@@ -39,11 +39,11 @@ export default function Home() {
   const { isAuthenticated } = useSession();
   const router = useRouter();
   const emotions = [
-    { value: 0, label: "😔 Down", color: "from-blue-500/50" },
-    { value: 25, label: "😊 Content", color: "from-green-500/50" },
-    { value: 50, label: "😌 Peaceful", color: "from-purple-500/50" },
-    { value: 75, label: "🤗 Happy", color: "from-yellow-500/50" },
-    { value: 100, label: "✨ Excited", color: "from-pink-500/50" },
+    { value: 0, label: "😔 Down", color: "from-[#1a4a5e]/50" },
+    { value: 25, label: "😊 Content", color: "from-[#297194]/50" },
+    { value: 50, label: "😌 Peaceful", color: "from-[#8bb8c8]/50" },
+    { value: 75, label: "🤗 Happy", color: "from-[#5a9cba]/50" },
+    { value: 100, label: "✨ Excited", color: "from-[#EC993D]/50" },
   ];
 
   const [emotion, setEmotion] = useState(50);
@@ -95,28 +95,28 @@ export default function Home() {
       icon: HeartPulse,
       title: "24/7 Support",
       description: "Always here to listen and support you, any time of day",
-      color: "from-rose-500/20",
+      color: "from-[#D1E1F7]/50",
       delay: 0.2,
     },
     {
       icon: Lightbulb,
       title: "Smart Insights",
       description: "Personalized guidance powered by emotional intelligence",
-      color: "from-amber-500/20",
+      color: "from-[#EC993D]/50",
       delay: 0.4,
     },
     {
       icon: Lock,
       title: "Private & Secure",
       description: "Your conversations are always confidential and encrypted",
-      color: "from-emerald-500/20",
+      color: "from-[#297194]/50",
       delay: 0.6,
     },
     {
       icon: MessageSquareHeart,
       title: "Evidence-Based",
       description: "Therapeutic techniques backed by clinical research",
-      color: "from-blue-500/20",
+      color: "from-[#1a4a5e]/50",
       delay: 0.8,
     },
   ];
@@ -143,16 +143,16 @@ export default function Home() {
           className="relative space-y-8 text-center"
         >
           {/* Enhanced badge with subtle animation */}
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm border border-primary/20 bg-primary/5 backdrop-blur-sm hover:border-primary/40 transition-all duration-300">
-            <Waves className="w-4 h-4 animate-wave text-primary" />
-            <span className="relative text-foreground/90 dark:text-foreground after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-primary/30 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300">
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm border border-[#D1E1F7] bg-[#E7F2F7] backdrop-blur-sm hover:border-[#297194] transition-all duration-300">
+            <Waves className="w-4 h-4 animate-wave text-[#297194]" />
+            <span className="relative text-[#1a4a5e] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-[#D1E1F7] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300">
               Your AI Agent Mental Health Companion
             </span>
           </div>
 
           {/* Enhanced main heading with smoother gradient */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-plus-jakarta tracking-tight">
-            <span className="inline-block bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent [text-shadow:_0_1px_0_rgb(0_0_0_/_20%)] hover:to-primary transition-all duration-300">
+            <span className="inline-block text-[#1a4a5e]">
               Find Peace
             </span>
             <br />
@@ -231,13 +231,12 @@ export default function Home() {
             <Button
               size="lg"
               onClick={() => setShowDialog(true)}
-              className="relative group h-12 px-8 rounded-full bg-gradient-to-r from-primary via-primary/90 to-secondary hover:to-primary shadow-lg shadow-primary/20 transition-all duration-500 hover:shadow-xl hover:shadow-primary/30"
+              className="relative group h-12 px-8 rounded-full bg-[#297194] text-[#ffffff] hover:bg-[#1e5870] shadow-lg shadow-[#297194]/20 transition-all duration-500"
             >
               <span className="relative z-10 font-medium flex items-center gap-2">
                 Begin Your Journey
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </span>
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-size-200 bg-pos-0 group-hover:bg-pos-100" />
             </Button>
           </motion.div>
         </motion.div>
@@ -249,8 +248,8 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.8 }}
         >
-          <div className="w-6 h-10 rounded-full border-2 border-primary/20 flex items-start justify-center p-1 hover:border-primary/40 transition-colors duration-300">
-            <div className="w-1 h-2 rounded-full bg-primary animate-scroll" />
+          <div className="w-6 h-10 rounded-full border-2 border-[#D1E1F7] flex items-start justify-center p-1 hover:border-[#297194] transition-colors duration-300">
+            <div className="w-1 h-2 rounded-full bg-[#297194] animate-scroll" />
           </div>
         </motion.div>
       </section>
@@ -260,11 +259,11 @@ export default function Home() {
         {/* <div className="absolute inset-0 bg-gradient-to-b from-background via-background/50 to-background" /> */}
 
         <div className="max-w-6xl mx-auto">
-          <motion.div className="text-center mb-16 space-y-4 text-white ">
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent dark:text-primary/90">
+          <motion.div className="text-center mb-16 space-y-4">
+            <h2 className="text-3xl font-bold text-[#1a4a5e]">
               How Aura Helps You
             </h2>
-            <p className="text-foreground dark:text-foreground/95 max-w-2xl mx-auto font-medium text-lg">
+            <p className="text-muted-foreground max-w-2xl mx-auto font-medium text-lg">
               Experience a new kind of emotional support, powered by empathetic
               AI
             </p>
@@ -279,16 +278,16 @@ export default function Home() {
                 transition={{ delay: feature.delay, duration: 0.5 }}
                 viewport={{ once: true }}
               >
-                <Card className="group relative overflow-hidden border border-primary/10 hover:border-primary/20 transition-all duration-300 h-[200px] bg-card/30 dark:bg-card/80 backdrop-blur-sm">
+                <Card className="group relative overflow-hidden border border-[#D1E1F7] hover:border-[#297194] transition-all duration-300 h-[200px] bg-[#ffffff] backdrop-blur-sm">
                   <div
-                    className={`absolute inset-0 bg-gradient-to-br ${feature.color} to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500 dark:group-hover:opacity-30`}
+                    className={`absolute inset-0 bg-gradient-to-br ${feature.color} to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
                   />
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-primary/10 dark:bg-primary/20 group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors duration-300">
-                        <feature.icon className="w-5 h-5 text-primary dark:text-primary/90" />
+                      <div className="p-2 rounded-xl bg-[#E7F2F7] group-hover:bg-[#D1E1F7] transition-colors duration-300">
+                        <feature.icon className="w-5 h-5 text-[#297194]" />
                       </div>
-                      <h3 className="font-semibold tracking-tight text-foreground/90 dark:text-foreground">
+                      <h3 className="font-semibold tracking-tight text-[#1a4a5e]">
                         {feature.title}
                       </h3>
                     </div>
@@ -298,7 +297,7 @@ export default function Home() {
                       {feature.description}
                     </p>
                   </CardContent>
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/20 dark:via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#D1E1F7] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </Card>
               </motion.div>
             ))}
@@ -321,11 +320,11 @@ export default function Home() {
               transition={{ duration: 0.3 }}
               className="space-y-4"
             >
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-[#E7F2F7] flex items-center justify-center">
                 {welcomeSteps[currentStep] && (
                   <div>
                     {React.createElement(welcomeSteps[currentStep].icon, {
-                      className: "w-8 h-8 text-primary",
+                      className: "w-8 h-8 text-[#297194]",
                     })}
                   </div>
                 )}
@@ -343,7 +342,7 @@ export default function Home() {
               {welcomeSteps.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentStep ? "bg-primary w-4" : "bg-primary/20"
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentStep ? "bg-[#297194] w-4" : "bg-[#D1E1F7]"
                     }`}
                 />
               ))}

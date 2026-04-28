@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, Flower2, Wind, TreePine, Waves, Music2 } from "lucide-react";
 import {
@@ -28,8 +28,8 @@ const games = [
     title: "Breathing Patterns",
     description: "Follow calming breathing exercises with visual guidance",
     icon: Wind,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
+    color: "text-[#297194]",
+    bgColor: "bg-[#D1E1F7]",
     duration: "5 mins",
   },
   {
@@ -37,8 +37,8 @@ const games = [
     title: "Zen Garden",
     description: "Create and maintain your digital peaceful space",
     icon: Flower2,
-    color: "text-rose-500",
-    bgColor: "bg-rose-500/10",
+    color: "text-[#EC993D]",
+    bgColor: "bg-[#EC993D]/10",
     duration: "10 mins",
   },
   {
@@ -46,8 +46,8 @@ const games = [
     title: "Mindful Forest",
     description: "Take a peaceful walk through a virtual forest",
     icon: TreePine,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
+    color: "text-[#1a4a5e]",
+    bgColor: "bg-[#E7F2F7]",
     duration: "15 mins",
   },
   {
@@ -55,19 +55,32 @@ const games = [
     title: "Ocean Waves",
     description: "Match your breath with gentle ocean waves",
     icon: Waves,
-    color: "text-cyan-500",
-    bgColor: "bg-cyan-500/10",
+    color: "text-[#297194]",
+    bgColor: "bg-[#D1E1F7]",
     duration: "8 mins",
   },
 ];
 
 interface AnxietyGamesProps {
   onGamePlayed?: (gameName: string, description: string) => Promise<void>;
+  externalActiveGame?: string | null;
+  onExternalGameHandled?: () => void;
 }
 
-export const AnxietyGames = ({ onGamePlayed }: AnxietyGamesProps) => {
+export const AnxietyGames = ({ onGamePlayed, externalActiveGame, onExternalGameHandled }: AnxietyGamesProps) => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [showGame, setShowGame] = useState(false);
+
+  useEffect(() => {
+    if (externalActiveGame) {
+      setSelectedGame(externalActiveGame);
+      setShowGame(true);
+
+      if (onExternalGameHandled) {
+        onExternalGameHandled();
+      }
+    }
+  }, [externalActiveGame, onExternalGameHandled]);
 
   const handleGameStart = async (gameId: string) => {
     setSelectedGame(gameId);

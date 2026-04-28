@@ -1,85 +1,89 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Calming light theme colors */
-    --background: 180 20% 99%;
-    --foreground: 200 8% 24%;
+    --background: #E7F2F7;
+    --foreground: #1a4a5e;
 
-    --card: 180 20% 99%;
-    --card-foreground: 200 8% 24%;
+    /* ── Mood-reactive tint variables (neutral = brand default) ── */
+    --mood-bg:      #E7F2F7;
+    --mood-surface: #D1E1F7;
 
-    --popover: 180 20% 99%;
-    --popover-foreground: 200 8% 24%;
+    --card: #ffffff;
+    --card-foreground: #1a4a5e;
 
-    /* Soft sage green as primary */
-    --primary: 150 30% 60%;
-    --primary-foreground: 150 40% 16%;
+    --popover: #ffffff;
+    --popover-foreground: #1a4a5e;
 
-    /* Gentle lavender as secondary */
-    --secondary: 250 20% 96%;
-    --secondary-foreground: 250 10% 30%;
+    --primary: #297194;
+    --primary-foreground: #ffffff;
 
-    /* Muted tones */
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 45%;
+    --secondary: #D1E1F7;
+    --secondary-foreground: #1a4a5e;
 
-    /* Soft accent */
-    --accent: 180 25% 95%;
-    --accent-foreground: 200 8% 24%;
+    --muted: #D1E1F7;
+    --muted-foreground: #1a4a5e;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
+    --accent: #EC993D;
+    --accent-foreground: #ffffff;
 
-    --border: 200 10% 90%;
-    --input: 200 10% 90%;
-    --ring: 150 30% 60%;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: #D1E1F7;
+    --input: #D1E1F7;
+    --ring: #297194;
 
     --radius: 0.75rem;
   }
 
-  .dark {
-    /* Soothing dark theme colors */
-    --background: 200 50% 3%;
-    --foreground: 210 20% 98%;
+  /* ── Mood tier tint overrides ───────────────────────────────────────────
+     Set document.documentElement.setAttribute('data-mood', tier) from JS.
+     Neutral (41-60%) is the :root default — no override needed.
+  ──────────────────────────────────────────────────────────────────────── */
+  [data-mood="too-low"] { --mood-bg: #dce8f0; --mood-surface: #b0ccd8; }
+  [data-mood="low"]     { --mood-bg: #e4edf5; --mood-surface: #b8cfe0; }
+  [data-mood="happy"]   { --mood-bg: #fef6ee; --mood-surface: #f5d9b8; }
+  [data-mood="excited"] { --mood-bg: #fff3e8; --mood-surface: #f5c89a; }
 
-    --card: 200 50% 3%;
-    --card-foreground: 210 20% 98%;
-
-    --popover: 200 50% 3%;
-    --popover-foreground: 210 20% 98%;
-
-    /* Soft sage in dark mode */
-    --primary: 150 30% 70%;
-    --primary-foreground: 150 40% 16%;
-
-    /* Gentle purple in dark mode */
-    --secondary: 250 20% 20%;
-    --secondary-foreground: 210 20% 98%;
-
-    /* Muted dark tones */
-    --muted: 200 50% 10%;
-    --muted-foreground: 210 20% 70%;
-
-    /* Soft dark accent */
-    --accent: 200 50% 10%;
-    --accent-foreground: 210 20% 98%;
-
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 200 50% 10%;
-    --input: 200 50% 10%;
-    --ring: 150 30% 70%;
+  /* Smooth colour transition when mood tier changes */
+  html {
+    transition: background-color 0.6s ease;
   }
-  .theme {
-    --animate-ripple: ripple var(--duration,2s) ease calc(var(--i, 0)*.2s) infinite;
+
+  .dark {
+    --background: #E7F2F7;
+    --foreground: #1a4a5e;
+
+    --card: #ffffff;
+    --card-foreground: #1a4a5e;
+
+    --popover: #ffffff;
+    --popover-foreground: #1a4a5e;
+
+    --primary: #297194;
+    --primary-foreground: #ffffff;
+
+    --secondary: #D1E1F7;
+    --secondary-foreground: #1a4a5e;
+
+    --muted: #D1E1F7;
+    --muted-foreground: #1a4a5e;
+
+    --accent: #EC993D;
+    --accent-foreground: #ffffff;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: #D1E1F7;
+    --input: #D1E1F7;
+    --ring: #297194;
   }
 }
-
-/* Add subtle transitions */
 @layer base {
   * {
     @apply border-border transition-colors duration-200;
@@ -95,7 +99,8 @@
 }
 
 .gentle-shadow {
-  @apply shadow-lg shadow-primary/5;
+  @apply shadow-lg;
+  box-shadow: 0 10px 15px -3px rgba(41, 113, 148, 0.05), 0 4px 6px -4px rgba(41, 113, 148, 0.05);
 }
 
 /* Add after your existing styles */
@@ -223,5 +228,204 @@
   50% {
     transform: translate(-50%, -50%) scale(0.9);
     }
+  }
+}
+
+/* Crisis Modal specific styles */
+.crisis-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 74, 94, 0.85); /* Dark text color as overlay */
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.crisis-modal {
+  background: #ffffff;
+  border: 2px solid #EC993D;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 560px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(236, 153, 61, 0.4);
+}
+
+.crisis-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.crisis-header h2 {
+  color: #EC993D;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.alert-sent-badge {
+  background: #fdecd5;
+  color: #d4842e;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-sending-badge {
+  background: #D1E1F7;
+  color: #297194;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.crisis-message {
+  color: #1a4a5e;
+  font-size: 15px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.helpline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.helpline-card {
+  background: #E7F2F7;
+  border: 1px solid #D1E1F7;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.helpline-icon { font-size: 22px; }
+
+.helpline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.helpline-info strong {
+  color: #1a4a5e;
+  font-size: 13px;
+}
+
+.helpline-number {
+  color: #297194;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.helpline-number:hover { color: #1e5870; }
+
+.helpline-hours {
+  color: #1a4a5e;
+  font-size: 11px;
+}
+
+.find-nearby-btn {
+  width: 100%;
+  padding: 12px;
+  background: #297194;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.find-nearby-btn:hover { background: #1e5870; }
+
+.crisis-close-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: #1a4a5e;
+  border: 1px solid #D1E1F7;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.crisis-close-btn:hover {
+  background: #D1E1F7;
+  color: #1a4a5e;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── CSS Compatibility overrides ───────────────────────────────────────────
+   Tailwind preflight emits vendor-prefixed properties without their standard
+   counterparts. These rules add the standard versions so IDE linters are
+   satisfied, and also suppress the vertical-align/display:block conflict.
+   These overrides are placed AFTER @tailwind so they take effect last.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Fix: add standard 'appearance' alongside -webkit-appearance (preflight) */
+button,
+input[type='button'],
+input[type='reset'],
+input[type='submit'] {
+  appearance: button;
+}
+
+[type='search'] {
+  appearance: textfield;
+}
+
+/* Fix: vertical-align is meaningless on display:block replaced elements.
+   Unset it to silence the linter; browsers align them correctly anyway. */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  vertical-align: unset;
+}
+
+/* Fix: add standard 'line-clamp' alongside -webkit-line-clamp (utilities) */
+@layer utilities {
+  .line-clamp-1 {
+    line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    line-clamp: 2;
   }
 }

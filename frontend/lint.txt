@@ -1,0 +1,38 @@
+
+./app/dashboard/page.tsx
+668:5  Warning: React Hook useCallback has a missing dependency: 'refreshInsights'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/games/bubble-pop/page.tsx
+212:24  Error: Parsing error: Invalid character.
+
+./app/games/falling-leaves/page.tsx
+190:24  Error: Parsing error: Invalid character.
+
+./app/profile/page.tsx
+139:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/therapy/[sessionId]/page.tsx
+336:6  Warning: React Hook useEffect has missing dependencies: 'authLoading' and 'isAuthenticated'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/auth/user-profile-dropdown.tsx
+48:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/CrisisModal.tsx
+49:6  Warning: React Hook useEffect has missing dependencies: 'alertSent' and 'handleSendAlert'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/games/forest-game.tsx
+37:6  Warning: React Hook useEffect has missing dependencies: 'audioElements' and 'volume'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+43:6  Warning: React Hook useEffect has a missing dependency: 'audioElements'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/games/ocean-waves.tsx
+29:6  Warning: React Hook useEffect has missing dependencies: 'audio' and 'volume'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+33:6  Warning: React Hook useEffect has a missing dependency: 'audio'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+61:6  Warning: React Hook useEffect has a missing dependency: 'waveControls'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/therapy/session-history.tsx
+51:6  Warning: React Hook useEffect has a missing dependency: 'loadSessions'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/ui/scratch-to-reveal.tsx
+89:6  Warning: React Hook useEffect has a missing dependency: 'checkCompletion'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

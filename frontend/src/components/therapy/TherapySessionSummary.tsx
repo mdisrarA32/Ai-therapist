@@ -72,14 +72,14 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
 
     const getStatusColor = (status: string) => {
         if (status === "ESCALATED") return "#dc2626";
-        if (status === "CLOSED") return "#4b5563";
-        return "#2563eb";
+        if (status === "CLOSED") return "#1a4a5e";
+        return "#297194";
     };
 
     const getTrendColor = (trend: string) => {
-        if (trend === "improving") return "#16a34a"; // green
-        if (trend === "declining") return "#dc2626"; // red
-        return "#ca8a04"; // yellow
+        if (trend === "improving") return "#297194"; // brand teal
+        if (trend === "declining") return "#dc2626"; // red (keep for severity)
+        return "#EC993D"; // amber
     };
 
     return (
@@ -87,13 +87,13 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
             maxWidth: "700px",
             margin: "2rem auto",
             padding: "2rem",
-            backgroundColor: "#fcfcfc",
-            border: "1px solid #e5e7eb",
+            backgroundColor: "#E7F2F7",
+            border: "1px solid #D1E1F7",
             borderRadius: "12px",
             fontFamily: "system-ui, sans-serif"
         }}>
-            <div style={{ borderBottom: "1px solid #e5e7eb", paddingBottom: "1rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h2 style={{ margin: 0, color: "#111827", fontSize: "1.5rem", fontWeight: 600 }}>Session Clinical Summary</h2>
+            <div style={{ borderBottom: "1px solid #D1E1F7", paddingBottom: "1rem", marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h2 style={{ margin: 0, color: "#1a4a5e", fontSize: "1.5rem", fontWeight: 600 }}>Session Clinical Summary</h2>
                 <div style={{
                     padding: "0.25rem 0.75rem",
                     borderRadius: "999px",
@@ -107,20 +107,20 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
-                <div style={{ padding: "1rem", backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
-                    <div style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>Total Interactions</div>
-                    <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#111827" }}>{summary.totalMessages}</div>
+                <div style={{ padding: "1rem", backgroundColor: "#ffffff", border: "1px solid #D1E1F7", borderRadius: "8px" }}>
+                    <div style={{ fontSize: "0.875rem", color: "#1a4a5e", marginBottom: "0.5rem" }}>Total Interactions</div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1a4a5e" }}>{summary.totalMessages}</div>
                 </div>
 
-                <div style={{ padding: "1rem", backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
-                    <div style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>Dominant Emotion</div>
-                    <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#111827", textTransform: "capitalize" }}>
+                <div style={{ padding: "1rem", backgroundColor: "#ffffff", border: "1px solid #D1E1F7", borderRadius: "8px" }}>
+                    <div style={{ fontSize: "0.875rem", color: "#1a4a5e", marginBottom: "0.5rem" }}>Dominant Emotion</div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1a4a5e", textTransform: "capitalize" }}>
                         {summary.dominantEmotion}
                     </div>
                 </div>
 
-                <div style={{ padding: "1rem", backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
-                    <div style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>Historical Trend</div>
+                <div style={{ padding: "1rem", backgroundColor: "#ffffff", border: "1px solid #D1E1F7", borderRadius: "8px" }}>
+                    <div style={{ fontSize: "0.875rem", color: "#1a4a5e", marginBottom: "0.5rem" }}>Historical Trend</div>
                     <div style={{
                         fontSize: "1.25rem",
                         fontWeight: 600,
@@ -133,13 +133,13 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
             </div>
 
             {summary.riskProgression.length > 0 && (
-                <div style={{ marginBottom: "2rem", backgroundColor: "#fff", padding: "1.5rem", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
-                    <h3 style={{ margin: "0 0 1.5rem 0", color: "#374151", fontSize: "1.125rem", fontWeight: 500 }}>Risk Progression</h3>
+                <div style={{ marginBottom: "2rem", backgroundColor: "#ffffff", padding: "1.5rem", border: "1px solid #D1E1F7", borderRadius: "8px" }}>
+                    <h3 style={{ margin: "0 0 1.5rem 0", color: "#1a4a5e", fontSize: "1.125rem", fontWeight: 500 }}>Risk Progression</h3>
                     <div style={{ height: "200px", width: "100%" }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={riskData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                                <XAxis dataKey="step" tick={{ fontSize: 12, fill: "#6b7280" }} axisLine={{ stroke: "#e5e7eb" }} tickLine={false} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#D1E1F7" />
+                                <XAxis dataKey="step" tick={{ fontSize: 12, fill: "#1a4a5e" }} axisLine={{ stroke: "#D1E1F7" }} tickLine={false} />
                                 <YAxis
                                     domain={[0, 4]}
                                     ticks={[1, 2, 3]}
@@ -149,7 +149,7 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
                                         if (val === 3) return "HIGH";
                                         return "";
                                     }}
-                                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                                    tick={{ fontSize: 12, fill: "#1a4a5e" }}
                                     axisLine={false}
                                     tickLine={false}
                                 />
@@ -160,7 +160,7 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
                                         if (val === 3) return ["HIGH", "Risk Level"];
                                         return [val, "Risk"];
                                     }}
-                                    contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                                    contentStyle={{ borderRadius: "8px", border: "1px solid #D1E1F7", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                                 />
                                 <Line
                                     type="monotone"
@@ -177,17 +177,17 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
             )}
 
             {summary.cbtTechniquesUsed && summary.cbtTechniquesUsed.length > 0 && (
-                <div style={{ backgroundColor: "#fff", padding: "1.5rem", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
-                    <h3 style={{ margin: "0 0 1rem 0", color: "#374151", fontSize: "1.125rem", fontWeight: 500 }}>Therapeutic Techniques Applied</h3>
+                <div style={{ backgroundColor: "#ffffff", padding: "1.5rem", border: "1px solid #D1E1F7", borderRadius: "8px" }}>
+                    <h3 style={{ margin: "0 0 1rem 0", color: "#1a4a5e", fontSize: "1.125rem", fontWeight: 500 }}>Therapeutic Techniques Applied</h3>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                         {summary.cbtTechniquesUsed.map((technique, idx) => (
                             <span key={idx} style={{
                                 padding: "0.375rem 0.75rem",
-                                backgroundColor: "#f3f4f6",
-                                color: "#4b5563",
+                                backgroundColor: "#D1E1F7",
+                                color: "#1a4a5e",
                                 borderRadius: "6px",
                                 fontSize: "0.875rem",
-                                border: "1px solid #e5e7eb"
+                                border: "1px solid #b8cfe0"
                             }}>
                                 {technique}
                             </span>
@@ -197,17 +197,17 @@ export const TherapySessionSummary: React.FC<TherapySessionSummaryProps> = ({ se
             )}
 
             {summary.clinicalNotes && (
-                <div style={{ backgroundColor: "#fff", padding: "1.5rem", border: "1px solid #e5e7eb", borderRadius: "8px", marginTop: "2rem" }}>
-                    <h3 style={{ margin: "0 0 1rem 0", color: "#374151", fontSize: "1.125rem", fontWeight: 500 }}>Clinical Notes</h3>
+                <div style={{ backgroundColor: "#ffffff", padding: "1.5rem", border: "1px solid #D1E1F7", borderRadius: "8px", marginTop: "2rem" }}>
+                    <h3 style={{ margin: "0 0 1rem 0", color: "#1a4a5e", fontSize: "1.125rem", fontWeight: 500 }}>Clinical Notes</h3>
                     <div style={{
-                        color: "#4b5563",
+                        color: "#1a4a5e",
                         fontSize: "0.95rem",
                         lineHeight: "1.6",
                         whiteSpace: "pre-wrap",
                         padding: "1rem",
-                        backgroundColor: "#f9fafb",
+                        backgroundColor: "#E7F2F7",
                         borderRadius: "6px",
-                        border: "1px solid #f3f4f6"
+                        border: "1px solid #D1E1F7"
                     }}>
                         {summary.clinicalNotes}
                     </div>

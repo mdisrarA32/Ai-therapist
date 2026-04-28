@@ -78,13 +78,13 @@ export function OceanWaves() {
   return (
     <div className="flex flex-col items-center justify-center h-[400px] space-y-8">
       <div className="relative w-48 h-48">
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/20 to-transparent rounded-full blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#297194]/20 to-transparent rounded-full blur-xl" />
         <motion.div
           animate={waveControls}
           className="absolute inset-0 flex items-center justify-center"
         >
           <div className="relative">
-            <Waves className="w-24 h-24 text-blue-600" />
+            <Waves className="w-24 h-24 text-[#297194]" />
             <motion.div
               animate={{
                 opacity: [0.5, 0.8, 0.5],
@@ -94,7 +94,7 @@ export function OceanWaves() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute inset-0 bg-blue-400/10 blur-xl rounded-full"
+              className="absolute inset-0 bg-[#E7F2F7]/40 blur-xl rounded-full"
             />
           </div>
         </motion.div>

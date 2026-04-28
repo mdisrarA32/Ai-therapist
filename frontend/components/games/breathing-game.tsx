@@ -74,9 +74,9 @@ export function BreathingGame() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center"
+          className="w-20 h-20 rounded-full bg-[#E7F2F7] flex items-center justify-center"
         >
-          <Check className="w-10 h-10 text-green-500" />
+          <Check className="w-10 h-10 text-[#297194]" />
         </motion.div>
         <h3 className="text-2xl font-semibold">Great job!</h3>
         <p className="text-muted-foreground text-center max-w-sm">

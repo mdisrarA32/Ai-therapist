@@ -18,6 +18,8 @@ import { connectDB } from "./utils/db";
 import { inngest } from "./inngest/client";
 import { functions as inngestFunctions } from "./inngest/functions";
 import dashboardRouter from "./routes/dashboardRoutes";
+import crisisRouter from "./routes/crisisRoutes";
+import smsTestRoutes from "./routes/smsTest";
 import http from "http";
 import { initSocket } from "./socket";
 // Create Express app
@@ -34,7 +36,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions)); // Enable secure CORS
-app.use(express.json()); // Parse JSON bodies
+app.use(express.json({ limit: "10mb" })); // Parse JSON bodies — 10mb for base64 profile photos
 app.use(morgan("dev")); // HTTP request logger
 
 // Set up Inngest endpoint
@@ -49,6 +51,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
 });
 
+app.use("/api", smsTestRoutes);
 app.use("/auth", authRouter);
 app.use("/chat", chatRouter);
 app.use("/api/mood", moodRouter);
@@ -59,6 +62,7 @@ app.use("/api/activities", activityRouter); // Dashboard alias
 app.use("/activities", activityRouter); // Alias for frontend
 app.use("/api/therapy", therapyRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/crisis", crisisRouter);
 
 // Error handling middleware
 app.use(errorHandler);

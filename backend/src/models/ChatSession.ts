@@ -11,6 +11,8 @@ export interface IChatMessage {
       emotionalState?: string;
       riskLevel?: number;
     };
+    detectedLanguage?: string;
+    languageLabel?: string;
   };
 }
 

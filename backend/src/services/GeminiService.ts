@@ -1,39 +1,30 @@
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!
-});
-
-export const getGeminiModel = () => {
-  return ai;
-};
+import Groq from 'groq-sdk';
 
 export const analyzeMessage = async (message: string) => {
   try {
-    const model = getGeminiModel();
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy" });
 
     const prompt = `
     Analyze the following message and return JSON:
     {
-      emotionalState: string,
-      riskLevel: number (0-3),
-      recommendedApproach: string,
-      themes: string[]
+      "emotionalState": "string",
+      "riskLevel": 0,
+      "recommendedApproach": "string",
+      "themes": ["string"]
     }
 
     Message: "${message}"
     `;
 
-    const result = await model.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: prompt }],
+      max_tokens: 512,
+      temperature: 0.1
     });
-    const raw = result.text || "";
-    const clean = raw
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
 
+    const raw = completion.choices[0]?.message?.content || "";
+    const clean = raw.replace(/```json/g, "").replace(/```/g, "").trim();
     return JSON.parse(clean);
   } catch (error) {
     return {
@@ -44,3 +35,4 @@ export const analyzeMessage = async (message: string) => {
     };
   }
 };
+

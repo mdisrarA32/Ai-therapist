@@ -67,7 +67,7 @@ export function ActivityList({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-green-500"
+                  className="text-[#297194]"
                   disabled
                 >
                   <CheckCircle className="w-4 h-4 mr-1" />

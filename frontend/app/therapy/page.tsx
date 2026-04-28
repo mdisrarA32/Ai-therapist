@@ -63,22 +63,22 @@ export default function TherapySessionList() {
     const getRiskBadge = (risk?: string) => {
         switch (risk) {
             case "HIGH": return <Badge variant="destructive">High Risk</Badge>;
-            case "MEDIUM": return <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">Medium Risk</Badge>;
-            case "LOW": return <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Low Risk</Badge>;
+            case "MEDIUM": return <Badge variant="default" className="bg-[#EC993D] hover:bg-[#d4842e]">Medium Risk</Badge>;
+            case "LOW": return <Badge variant="secondary" className="bg-[#D1E1F7] text-[#1a4a5e] hover:bg-[#b8cfe0]">Low Risk</Badge>;
             default: return <Badge variant="outline">Unassessed</Badge>;
         }
     };
 
     const getStatusBadge = (status: string) => {
         if (status === "ESCALATED") return <Badge variant="destructive" className="flex gap-1 items-center"><AlertCircle className="w-3 h-3" /> Escalated</Badge>;
-        if (status === "ACTIVE") return <Badge variant="outline" className="border-primary text-primary">Active</Badge>;
+        if (status === "ACTIVE") return <Badge variant="outline" className="border-[#297194] text-[#297194]">Active</Badge>;
         return <Badge variant="secondary">Closed</Badge>;
     };
 
     if (isLoading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#297194]" />
             </div>
         );
     }
@@ -88,7 +88,7 @@ export default function TherapySessionList() {
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <HeartPulse className="w-8 h-8 text-primary" />
+                        <HeartPulse className="w-8 h-8 text-[#297194]" />
                         Therapy Sessions
                     </h1>
                     <p className="text-muted-foreground mt-2">Manage and review your AI therapy sessions.</p>
@@ -117,7 +117,7 @@ export default function TherapySessionList() {
                     {sessions.map((session) => (
                         <Card
                             key={session._id}
-                            className="cursor-pointer hover:border-primary/50 transition-colors group"
+                            className="cursor-pointer border-[#D1E1F7] bg-[#ffffff] hover:border-[#297194]/50 transition-colors group"
                             onClick={() => router.push(`/therapy/${session._id}`)}
                         >
                             <CardHeader className="p-4 sm:p-6 pb-0">
@@ -140,7 +140,7 @@ export default function TherapySessionList() {
                                         <Calendar className="w-4 h-4" />
                                         Created: {new Date(session.createdAt).toLocaleString()}
                                     </div>
-                                    <div className="flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                                    <div className="flex items-center text-[#297194] opacity-0 group-hover:opacity-100 transition-opacity font-medium">
                                         View Session <ArrowRight className="w-4 h-4 ml-1" />
                                     </div>
                                 </div>

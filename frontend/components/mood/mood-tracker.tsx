@@ -65,19 +65,19 @@ const moodData = {
 };
 
 const getMoodEmoji = (value: number) => {
-  if (value >= 80) return { icon: Smile, color: "text-green-500" };
-  if (value >= 60) return { icon: Meh, color: "text-yellow-500" };
+  if (value >= 80) return { icon: Smile, color: "text-[#297194]" };
+  if (value >= 60) return { icon: Meh, color: "text-[#EC993D]" };
   return { icon: Frown, color: "text-red-500" };
 };
 
 const getImpactColor = (impact: string) => {
   switch (impact) {
     case "positive":
-      return "bg-green-500/10 text-green-500";
+      return "bg-[#D1E1F7] text-[#297194]";
     case "negative":
       return "bg-red-500/10 text-red-500";
     default:
-      return "bg-yellow-500/10 text-yellow-500";
+      return "bg-[#EC993D]/10 text-[#EC993D]";
   }
 };
 
@@ -162,10 +162,10 @@ export function MoodTracker() {
                               <div
                                 className={`h-1.5 w-1.5 rounded-full ${
                                   activity.impact === "positive"
-                                    ? "bg-green-500"
+                                    ? "bg-[#297194]"
                                     : activity.impact === "negative"
                                     ? "bg-red-500"
-                                    : "bg-yellow-500"
+                                    : "bg-[#EC993D]"
                                 }`}
                               />
                             </div>
@@ -225,9 +225,9 @@ export function MoodTracker() {
             <div key={index} className="p-4 rounded-lg bg-primary/5 space-y-2">
               <div className="flex items-center gap-2">
                 {insight.trend === "up" ? (
-                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  <TrendingUp className="w-4 h-4 text-[#297194]" />
                 ) : (
-                  <LineChart className="w-4 h-4 text-yellow-500" />
+                  <LineChart className="w-4 h-4 text-[#EC993D]" />
                 )}
                 <h4 className="font-medium">{insight.title}</h4>
               </div>
@@ -258,8 +258,8 @@ export function MoodTracker() {
                   Avg: {week.average}%
                 </p>
                 <div className="text-xs space-x-2 text-muted-foreground">
-                  <span className="text-green-500">↑{week.peak}</span>
-                  <span className="text-yellow-500">↓{week.low}</span>
+                  <span className="text-[#297194]">↑{week.peak}</span>
+                  <span className="text-[#EC993D]">↓{week.low}</span>
                 </div>
               </div>
             ))}

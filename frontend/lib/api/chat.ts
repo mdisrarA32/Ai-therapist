@@ -40,6 +40,9 @@ export interface ApiResponse {
     goal: string;
     progress: any[];
   };
+  detectedLanguage?: string;
+  languageLabel?: string;
+  isCrisis?: boolean;
 }
 
 export const createChatSession = async (): Promise<string> => {
@@ -77,9 +80,33 @@ export const sendChatMessageStream = async (
       throw new Error("Failed to send message stream");
     }
 
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      return {
+        message: data.response,
+        response: data.response,
+        detectedLanguage: data.detectedLanguage,
+        languageLabel: data.languageLabel,
+        isCrisis: data.isCrisis,
+        metadata: {
+          technique: "crisis_intervention",
+          goal: "Emergency support",
+          progress: []
+        }
+      };
+    }
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullResponse = "";
+
+    const detectedLanguage = response.headers.get("X-Detected-Language") || "en";
+    let languageLabel = "English";
+    const headerLabel = response.headers.get("X-Language-Label");
+    if (headerLabel) {
+      try { languageLabel = decodeURIComponent(headerLabel); } catch (e) {}
+    }
 
     while (true) {
       const { done, value } = await reader.read();
@@ -95,6 +122,8 @@ export const sendChatMessageStream = async (
     return {
       message: fullResponse,
       response: fullResponse,
+      detectedLanguage,
+      languageLabel,
       metadata: {
         technique: "supportive",
         goal: "Provide support",
@@ -152,7 +181,7 @@ export const getAllChatSessions = async (): Promise<ChatSession[]> => {
   try {
     console.log("Fetching all chat sessions...");
     const { data } = await apiClient.get("/chat/sessions");
-    console.log("Received chat sessions:", data);
+    console.log("Received chat sessions:", Array.isArray(data) ? data.length : 0);
 
     return data.map((session: any) => {
       // Ensure dates are valid

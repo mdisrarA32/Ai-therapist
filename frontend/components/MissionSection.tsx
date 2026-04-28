@@ -7,7 +7,7 @@ export function MissionSection() {
   return (
     <section className="relative py-24 px-4 overflow-hidden">
       {/* Soft glowing radial gradient in center */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-purple-500/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/10 via-[#D1E1F7]/30 to-[#8bb8c8]/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">

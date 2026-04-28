@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, logout } from "../controllers/authController";
+import { register, login, logout, updateProfile } from "../controllers/authController";
 import { auth } from "../middleware/auth";
 
 const router = Router();
@@ -17,5 +17,8 @@ router.post("/logout", auth, logout);
 router.get("/me", auth, (req, res) => {
   res.json({ user: req.user });
 });
+
+// PUT /auth/me
+router.put("/me", auth, updateProfile);
 
 export default router;

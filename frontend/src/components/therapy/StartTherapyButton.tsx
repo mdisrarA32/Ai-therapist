@@ -34,7 +34,7 @@ export const StartTherapyButton: React.FC = () => {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                backgroundColor: isLoading ? "#9ca3af" : "#0f172a",
+                backgroundColor: isLoading ? "#b8cfe0" : "#297194",
                 color: "white",
                 fontWeight: 500,
                 padding: "0.5rem 1rem",
