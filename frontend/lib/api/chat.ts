@@ -1,6 +1,8 @@
 import apiClient from "./client";
 
 export interface ChatMessage {
+  id?: string;
+  createdAt?: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;

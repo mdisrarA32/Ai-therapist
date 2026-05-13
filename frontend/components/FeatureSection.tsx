@@ -67,7 +67,7 @@ const featuresData: Feature[] = [
     title: "Holistic Care",
     description: "Integrates multiple therapeutic modalities to ensure a well-rounded approach to mental stability.",
     icon: Sparkles,
-    details: ["Mindfulness exercises", "Somatic experiencing techniques", "Journaling prompts"]
+    details: ["Mindfulness exercises", "Somatic experiencing techniques",]
   }
 ];
 

@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-// Load environment variables immediately
 dotenv.config();
 
 import express from "express";
@@ -22,89 +21,105 @@ import crisisRouter from "./routes/crisisRoutes";
 import smsTestRoutes from "./routes/smsTest";
 import http from "http";
 import { initSocket } from "./socket";
-// Create Express app
+
 const app = express();
 
-// Middleware
-app.use(helmet()); // Security headers
-// Cors Configuration
+// Security headers
+app.use(helmet());
+
+// CORS — allows localhost in dev, Vercel in production
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  process.env.FRONTEND_URL || "",
+].filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === "production"
-    ? process.env.FRONTEND_URL
-    : "*",
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    // Allow requests with no origin (mobile apps, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (
+      process.env.NODE_ENV !== "production" ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 };
-app.use(cors(corsOptions)); // Enable secure CORS
-app.use(express.json({ limit: "10mb" })); // Parse JSON bodies — 10mb for base64 profile photos
-app.use(morgan("dev")); // HTTP request logger
 
-// Set up Inngest endpoint
+app.use(cors(corsOptions));
+app.use(express.json({ limit: "10mb" }));
+app.use(morgan("dev"));
+
+// Inngest
 app.use(
   "/api/inngest",
   serve({ client: inngest, functions: inngestFunctions })
 );
-// OnaF6EGHhgYY9OPv
 
-// Routes
+// Health check
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
 });
 
+// Routes — all same as before
 app.use("/api", smsTestRoutes);
 app.use("/auth", authRouter);
 app.use("/chat", chatRouter);
 app.use("/api/mood", moodRouter);
-app.use("/mood", moodRouter); // Alias for frontend
+app.use("/mood", moodRouter);
 app.use("/api/activity", activityRouter);
-app.use("/activity", activityRouter); // Alias for frontend
-app.use("/api/activities", activityRouter); // Dashboard alias
-app.use("/activities", activityRouter); // Alias for frontend
+app.use("/activity", activityRouter);
+app.use("/api/activities", activityRouter);
+app.use("/activities", activityRouter);
 app.use("/api/therapy", therapyRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/crisis", crisisRouter);
 
-// Error handling middleware
+// Error handler
 app.use(errorHandler);
 
 // Start server
 const startServer = async () => {
   try {
-    // Connect to MongoDB first
     await connectDB();
 
-    // Then start the server
-    const initialPort = parseInt(process.env.PORT || "3001", 10);
+    const PORT = parseInt(process.env.PORT || "3002", 10);
+    const server = http.createServer(app);
 
-    const startWithPort = (port: number) => {
-      const server = http.createServer(app);
-      initSocket(server);
+    initSocket(server);
 
-      server.listen(port);
+    server.listen(PORT, () => {
+      logger.info(`Server is running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+    });
 
-      server.on("listening", () => {
-        logger.info(`Server is running on port ${port}`);
-        logger.info(
-          `Inngest endpoint available at http://localhost:${port}/api/inngest`
-        );
+    server.on("error", (err: NodeJS.ErrnoException) => {
+      logger.error("Server error:", err.message);
+      process.exit(1);
+    });
+
+    // Graceful shutdown
+    process.on("SIGTERM", () => {
+      logger.info("SIGTERM received — shutting down gracefully");
+      server.close(() => {
+        logger.info("Server closed");
+        process.exit(0);
       });
+    });
 
-      server.on("error", (err: any) => {
-        if (err.code === "EADDRINUSE") {
-          logger.warn(`⚠️  Port ${port} is already in use.`);
-          logger.warn(`🔄 Attempting to start server on port ${port + 1}...`);
-          // Gracefully try the next port 
-          startWithPort(port + 1);
-        } else {
-          logger.error("Failed to start server:", err);
-          process.exit(1);
-        }
-      });
-    };
-
-    startWithPort(initialPort);
   } catch (error) {
-    logger.error("Failed to initialize server requirements:", error);
+    logger.error("Failed to initialize server:", error);
     process.exit(1);
   }
 };
