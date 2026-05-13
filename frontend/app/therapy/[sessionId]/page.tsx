@@ -123,6 +123,7 @@ export default function TherapyPage() {
   const [lastMessageTime, setLastMessageTime] = useState(0);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [crisisLanguage, setCrisisLanguage] = useState('en');
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   const [sosSent, setSosSent] = useState(false);
   const [sosLoading, setSosLoading] = useState(false);
@@ -637,10 +638,20 @@ export default function TherapyPage() {
         onClose={() => setShowCrisisModal(false)}
         detectedLanguage={crisisLanguage}
       />
-      <div className="flex h-[calc(100vh-4rem)] mt-20 gap-6">
+      <div className="flex h-[calc(100vh-4rem)] mt-16 md:mt-20 gap-0 md:gap-6 relative">
         {/* Sidebar with chat history */}
-        <div className="w-80 flex flex-col border-r border-[#D1E1F7] bg-[#ffffff]">
-          <div className="p-4 border-b border-[#D1E1F7]">
+        <div className={cn(
+          "flex flex-col border-r border-[#D1E1F7] bg-[#ffffff] z-40 transition-all duration-300",
+          "fixed md:relative inset-y-0 left-0 top-0 h-full w-72 md:w-80",
+          showMobileSidebar ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+        )}>
+          <div className="p-4 border-b border-[#D1E1F7] relative">
+            <button
+              className="md:hidden absolute top-4 right-4 p-1 rounded-full hover:bg-[#E7F2F7]"
+              onClick={() => setShowMobileSidebar(false)}
+            >
+              <X className="w-5 h-5 text-[#297194]" />
+            </button>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Chat Sessions</h2>
               <Button
@@ -725,7 +736,20 @@ export default function TherapyPage() {
         <div className="flex-1 flex flex-col overflow-hidden bg-[#E7F2F7] rounded-lg border border-[#D1E1F7]">
           {/* Chat header */}
           <div className="p-4 border-b border-[#D1E1F7] bg-[#ffffff] flex items-center justify-between">
+            {/* Mobile overlay — tap to close sidebar */}
+            {showMobileSidebar && (
+              <div
+                className="fixed inset-0 bg-black/40 z-30 md:hidden"
+                onClick={() => setShowMobileSidebar(false)}
+              />
+            )}
             <div className="flex items-center gap-2">
+              <button
+                className="md:hidden mr-2 p-2 rounded-lg hover:bg-[#E7F2F7] text-[#297194]"
+                onClick={() => setShowMobileSidebar(true)}
+              >
+                <MessageSquare className="w-5 h-5" />
+              </button>
               <div className="w-8 h-8 rounded-full bg-[#E7F2F7] text-[#297194] flex items-center justify-center">
                 <Bot className="w-5 h-5" />
               </div>
@@ -949,7 +973,7 @@ export default function TherapyPage() {
                   }
                   className={cn(
                     "w-full resize-none rounded-2xl border border-[#D1E1F7] bg-[#ffffff]",
-                    "p-3 pr-[160px] min-h-[48px] max-h-[200px] text-[#297194]",
+                    "p-3 pr-3 pb-14 md:pb-3 md:pr-[160px] min-h-[48px] max-h-[200px] text-[#297194]",
                     "focus:outline-none focus:border-[#297194] focus:ring-1 focus:ring-[#297194]",
                     "transition-all duration-200",
                     "placeholder:text-muted-foreground/70",
@@ -965,7 +989,7 @@ export default function TherapyPage() {
                     }
                   }}
                 />
-                <div className="absolute right-1.5 bottom-1.5 flex items-center gap-1.5">
+                <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center gap-1.5 md:left-auto md:right-1.5">
                     <button
                       onClick={handleSOS}
                       style={{
@@ -973,12 +997,12 @@ export default function TherapyPage() {
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
-                        padding: '8px 12px',
-                        fontSize: '13px',
+                        padding: '6px 8px',
+                        fontSize: '12px',
                         fontWeight: '500',
                         cursor: (sosSent || sosLoading) ? 'not-allowed' : 'pointer',
                         opacity: sosLoading ? 0.7 : 1,
-                        height: '36px',
+                        height: '32px',
                         transition: 'all 0.2s'
                       }}
                       disabled={sosSent || sosLoading}
@@ -989,7 +1013,7 @@ export default function TherapyPage() {
                     <select
                       value={currentLanguage}
                       onChange={(e) => setCurrentLanguage(e.target.value)}
-                      className="h-[36px] bg-background border border-border text-xs rounded-xl px-2 focus:outline-none focus:ring-1 focus:ring-primary/50 text-muted-foreground w-[72px]"
+                      className="h-[32px] md:h-[36px] bg-background border border-border text-xs rounded-xl px-1 focus:outline-none focus:ring-1 focus:ring-primary/50 text-muted-foreground w-[58px] md:w-[72px]"
                       title="Force Language"
                     >
                       <option value="en-US">EN</option>
@@ -1011,7 +1035,7 @@ export default function TherapyPage() {
                       onClick={toggleListening}
                       disabled={isSpeaking}
                       className={cn(
-                        "h-[36px] w-[36px] rounded-xl transition-all duration-200",
+                        "h-[32px] w-[32px] md:h-[36px] md:w-[36px] rounded-xl transition-all duration-200",
                         isListening ? "bg-red-500 hover:bg-red-600 mic-active text-white border-red-500" : "bg-muted/50 hover:bg-muted text-muted-foreground",
                         isSpeaking && "opacity-50 cursor-not-allowed"
                       )}
@@ -1025,7 +1049,7 @@ export default function TherapyPage() {
                       type="submit"
                       size="icon"
                       className={cn(
-                        "h-[36px] w-[36px]",
+                        "h-[32px] w-[32px] md:h-[36px] md:w-[36px]",
                         "rounded-xl transition-all duration-200",
                         "bg-[#297194] text-[#ffffff] hover:bg-[#1e5870]",
                         "shadow-sm",
