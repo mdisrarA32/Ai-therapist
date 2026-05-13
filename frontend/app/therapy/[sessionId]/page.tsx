@@ -286,7 +286,6 @@ export default function TherapyPage() {
     try {
       setIsLoading(true);
       const newSessionId = await createChatSession();
-      console.log("New session created:", newSessionId);
 
       // Update sessions list immediately
       const newSession: ChatSession = {
@@ -327,22 +326,17 @@ export default function TherapyPage() {
       try {
         setIsLoading(true);
         if (!sessionId || sessionId === "new") {
-          console.log("Creating new chat session...");
           const newSessionId = await createChatSession();
-          console.log("New session created:", newSessionId);
           setSessionId(newSessionId);
           window.history.pushState({}, "", `/therapy/${newSessionId}`);
         } else {
-          console.log("Loading existing chat session:", sessionId);
           try {
             const history = await getChatHistory(sessionId);
-            console.log("Loaded chat history:", history);
             if (Array.isArray(history)) {
               const formattedHistory = history.map((msg) => ({
                 ...msg,
                 timestamp: new Date(msg.timestamp),
               }));
-              console.log("Formatted history:", formattedHistory);
               setMessages(formattedHistory);
             } else {
               console.error("History is not an array:", history);
@@ -401,26 +395,14 @@ export default function TherapyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted");
     const currentMessage = message.trim();
-    console.log("Current message:", currentMessage);
-    console.log("Session ID:", sessionId);
-    console.log("Is typing:", isTyping);
-    console.log("Is chat paused:", isChatPaused);
 
     if (!currentMessage || isTyping || isChatPaused || !sessionId) {
-      console.log("Submission blocked:", {
-        noMessage: !currentMessage,
-        isTyping,
-        isChatPaused,
-        noSessionId: !sessionId,
-      });
       return;
     }
 
     const now = Date.now();
     if (now - lastMessageTime < 3000) {
-      console.log("Submission blocked: Debounce rate limit (wait 3 seconds)");
       return;
     }
     setLastMessageTime(now);
@@ -431,6 +413,7 @@ export default function TherapyPage() {
     try {
       // Add user message
       const userMessage: ChatMessage = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
         role: "user",
         content: currentMessage,
         timestamp: new Date(),
@@ -449,6 +432,7 @@ export default function TherapyPage() {
       setMessages((prev) => [
         ...prev,
         {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2),
           role: "assistant",
           content: "",
           timestamp: new Date(),
@@ -499,7 +483,6 @@ export default function TherapyPage() {
         }
         return newArr;
       });
-      console.log("Stream successfully completed!");
 
       if (aiResponse && aiResponse.message) {
           if (aiResponse.isCrisis) {
@@ -820,9 +803,9 @@ export default function TherapyPage() {
             <div className="flex-1 overflow-y-auto scroll-smooth">
               <div className="max-w-3xl mx-auto">
                 <AnimatePresence initial={false}>
-                  {messages.map((msg) => (
+                  {messages.map((msg, index) => (
                     <motion.div
-                      key={msg.timestamp.toISOString()}
+                      key={msg.id ?? `msg-${msg.createdAt ?? msg.timestamp.toISOString()}-${index}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}

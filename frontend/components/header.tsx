@@ -27,7 +27,6 @@ export function Header() {
   const { isAuthenticated, logout, user } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  console.log("Header: Auth state: isAuthenticated =", isAuthenticated);
   const navItems = [
     { href: "/features", label: "Features" },
     { href: "/about", label: "About Aura" },

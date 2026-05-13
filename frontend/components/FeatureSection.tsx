@@ -20,13 +20,13 @@ const featuresData: Feature[] = [
     icon: Brain,
     details: ["Natural language understanding", "Cognitive behavioral frameworks", "Non-judgmental conversational flow"]
   },
-  {
-    id: "blockchain",
-    title: "Blockchain Security",
-    description: "Your conversations are mathematically secured and fully private, protecting your most sensitive data.",
-    icon: Shield,
-    details: ["End-to-end encryption", "Decentralized identity verification", "Immutable privacy logs"]
-  },
+  // {
+  //   id: "blockchain",
+  //   title: "Blockchain Security",
+  //   description: "Your conversations are mathematically secured and fully private, protecting your most sensitive data.",
+  //   icon: Shield,
+  //   details: ["End-to-end encryption", "Decentralized identity verification", "Immutable privacy logs"]
+  // },
   {
     id: "smart-analysis",
     title: "Smart Analysis",
@@ -41,13 +41,13 @@ const featuresData: Feature[] = [
     icon: HeartPulse,
     details: ["Real-time emotional volatility alerts", "Emergency contact routing", "De-escalation guidance"]
   },
-  {
-    id: "iot",
-    title: "IoT Integration",
-    description: "Syncs with wearables to correlate physiological signs with your self-reported emotional state.",
-    icon: Activity,
-    details: ["Heart rate variability sync", "Sleep pattern analysis", "Biometric stress indicators"]
-  },
+  // {
+  //   id: "iot",
+  //   title: "IoT Integration",
+  //   description: "Syncs with wearables to correlate physiological signs with your self-reported emotional state.",
+  //   icon: Activity,
+  //   details: ["Heart rate variability sync", "Sleep pattern analysis", "Biometric stress indicators"]
+  // },
   {
     id: "progress",
     title: "Progress Tracking",
@@ -86,8 +86,8 @@ export function FeatureSection() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     },
@@ -99,7 +99,7 @@ export function FeatureSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-b from-primary/5 via-[#D1E1F7]/30 to-[#8bb8c8]/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10 w-full">
-        
+
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -112,7 +112,7 @@ export function FeatureSection() {
             <h2 className="text-3xl md:text-4xl font-bold text-[#1a4a5e] tracking-tight pb-2">
               How Aura Helps You
             </h2>
-            <motion.div 
+            <motion.div
               initial={{ scaleX: 0 }}
               whileInView={{ scaleX: 1 }}
               transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}

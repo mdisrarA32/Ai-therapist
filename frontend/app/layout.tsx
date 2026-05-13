@@ -7,6 +7,13 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
 
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  console.log = () => {}
+  console.debug = () => {}
+  console.info = () => {}
+  console.warn = () => {}
+}
+
 // Initialize the fonts
 const inter = Inter({
   subsets: ["latin"],

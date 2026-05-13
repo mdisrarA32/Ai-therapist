@@ -47,9 +47,7 @@ export interface ApiResponse {
 
 export const createChatSession = async (): Promise<string> => {
   try {
-    console.log("Creating new chat session...");
     const { data } = await apiClient.post("/chat/sessions");
-    console.log("Chat session created:", data);
     return data.sessionId;
   } catch (error: any) {
     console.error("Error creating chat session:", error);
@@ -141,9 +139,7 @@ export const sendChatMessage = async (
   message: string
 ): Promise<ApiResponse> => {
   try {
-    console.log(`Sending message to session ${sessionId}:`, message);
     const { data } = await apiClient.post(`/chat/sessions/${sessionId}/messages`, { message });
-    console.log("Message sent successfully:", data);
     return data;
   } catch (error: any) {
     console.error("Error sending chat message:", error);
@@ -155,9 +151,7 @@ export const getChatHistory = async (
   sessionId: string
 ): Promise<ChatMessage[]> => {
   try {
-    console.log(`Fetching chat history for session ${sessionId}`);
     const { data } = await apiClient.get(`/chat/sessions/${sessionId}/history`);
-    console.log("Received chat history:", data);
 
     if (!Array.isArray(data)) {
       console.error("Invalid chat history format:", data);
@@ -179,9 +173,7 @@ export const getChatHistory = async (
 
 export const getAllChatSessions = async (): Promise<ChatSession[]> => {
   try {
-    console.log("Fetching all chat sessions...");
     const { data } = await apiClient.get("/chat/sessions");
-    console.log("Received chat sessions:", Array.isArray(data) ? data.length : 0);
 
     return data.map((session: any) => {
       // Ensure dates are valid
