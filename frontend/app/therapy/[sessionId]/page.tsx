@@ -108,6 +108,7 @@ export default function TherapyPage() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const suggestedTextRef = useRef<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -396,14 +397,16 @@ export default function TherapyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentMessage = message.trim();
+    const currentMessage = (suggestedTextRef.current || message).trim();
+    suggestedTextRef.current = "";
 
     if (!currentMessage || isTyping || isChatPaused || !sessionId) {
       return;
     }
 
     const now = Date.now();
-    if (now - lastMessageTime < 3000) {
+    const isSuggestedQuestion = !!suggestedTextRef.current;
+    if (!isSuggestedQuestion && now - lastMessageTime < 3000) {
       return;
     }
     setLastMessageTime(now);
@@ -583,18 +586,11 @@ export default function TherapyPage() {
     return null;
   };
 
-  const handleSuggestedQuestion = async (text: string) => {
-    if (!sessionId) {
-      const newSessionId = await createChatSession();
-      setSessionId(newSessionId);
-      router.push(`/therapy/${newSessionId}`);
-    }
-
-    setMessage(text);
-    setTimeout(() => {
-      const event = new Event("submit") as unknown as React.FormEvent;
-      handleSubmit(event);
-    }, 0);
+  const handleSuggestedQuestion = (text: string) => {
+    if (!text.trim() || isTyping || isChatPaused) return;
+    suggestedTextRef.current = text;
+    setLastMessageTime(0);
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
   };
 
   const handleCompleteSession = async () => {

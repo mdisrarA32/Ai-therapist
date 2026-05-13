@@ -30,6 +30,7 @@ export function Header() {
   const navItems = [
     { href: "/features", label: "Features" },
     { href: "/about", label: "About Aura" },
+    { href: "/resources", label: "Resources" },
   ];
 
   const pathname = usePathname() || '';
