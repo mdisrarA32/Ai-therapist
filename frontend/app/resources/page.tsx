@@ -7,96 +7,143 @@ import { useState } from "react";
 type Mood = "all" | "anxiety" | "depression" | "sleep" | "motivation";
 
 interface Book {
-  id: number;
+  id: string;
   title: string;
   author: string;
-  year: number;
-  mood: string;
+  year: string;
+  mood: string | string[];
   accent: string;
   letter: string;
   summary: string;
-  pages: number;
-  tags: Mood[];
+  pages: string;
+  tag: string;
+  tags?: Mood[];
+  isFree?: boolean;
+  freeUrl?: string;
 }
 
 const BOOKS: Book[] = [
   {
-    id: 1,
+    id: "1",
     title: "The Anxiety & Worry Workbook",
     author: "Clark & Beck",
-    year: 2011,
     mood: "Anxiety & Stress",
-    accent: "#0891b2",
-    letter: "A",
-    summary:
-      "A research-backed, step-by-step workbook grounded in Cognitive Behavioral Therapy. Clark and Beck guide you through identifying worry triggers, challenging catastrophic thoughts, and building lasting coping skills — all with practical exercises you can do at your own pace.",
-    pages: 374,
+    summary: "Evidence-based cognitive techniques to break free from worry cycles and find lasting calm in everyday life.",
+    pages: "376 pages", year: "2011", tag: "Anxiety & Stress",
+    accent: "#0891b2", letter: "A",
     tags: ["anxiety"],
+    isFree: false,
+    freeUrl: "",
   },
   {
-    id: 2,
+    id: "2",
     title: "Feeling Good",
     author: "David D. Burns",
-    year: 1999,
     mood: "Depression",
-    accent: "#d97706",
-    letter: "F",
-    summary:
-      "One of the most widely read self-help books in history, Feeling Good introduces cognitive distortions — the subtle lies depression tells us — and gives you concrete tools to rewrite them. Burns' compassionate, clinical approach has helped millions lift themselves out of low moods without medication.",
-    pages: 736,
+    summary: "The clinically proven CBT program that has helped millions overcome depression — without medication.",
+    pages: "736 pages", year: "1999", tag: "Depression",
+    accent: "#d97706", letter: "F",
     tags: ["depression"],
+    isFree: false,
+    freeUrl: "",
   },
   {
-    id: 3,
+    id: "3",
     title: "Why We Sleep",
     author: "Matthew Walker",
-    year: 2017,
     mood: "Sleep & Rest",
-    accent: "#7c3aed",
-    letter: "W",
-    summary:
-      "Neuroscientist Matthew Walker reveals the surprising science behind what happens while you sleep — memory consolidation, emotional regulation, immune function — and why our modern world conspires against it. Both eye-opening and actionable for anyone struggling with rest.",
-    pages: 368,
+    summary: "A groundbreaking exploration of sleep's extraordinary role in our health, creativity, and emotional balance.",
+    pages: "368 pages", year: "2017", tag: "Sleep & Rest",
+    accent: "#7c3aed", letter: "W",
     tags: ["sleep"],
+    isFree: false,
+    freeUrl: "",
   },
   {
-    id: 4,
+    id: "4",
     title: "The Mountain Is You",
     author: "Brianna Wiest",
-    year: 2020,
     mood: "Motivation & Depression",
-    accent: "#059669",
-    letter: "M",
-    summary:
-      "Wiest writes about self-sabotage with rare honesty — why we stand in our own way, how trauma shapes our comfort zones, and what it takes to genuinely transform. This isn't a quick-fix book; it's a deeply human exploration of becoming who you're afraid to be.",
-    pages: 240,
+    summary: "Transforming self-sabotage into self-mastery — learning to use your greatest obstacle as your greatest fuel.",
+    pages: "240 pages", year: "2020", tag: "Motivation",
+    accent: "#059669", letter: "M",
     tags: ["motivation", "depression"],
+    isFree: false,
+    freeUrl: "",
   },
   {
-    id: 5,
+    id: "5",
     title: "Full Catastrophe Living",
     author: "Jon Kabat-Zinn",
-    year: 2013,
     mood: "Anxiety & Sleep",
-    accent: "#0891b2",
-    letter: "F",
-    summary:
-      "The foundational text on Mindfulness-Based Stress Reduction (MBSR), developed at the University of Massachusetts Medical School. Kabat-Zinn shows how present-moment awareness can ease chronic pain, anxiety, and sleeplessness — with decades of clinical evidence behind it.",
-    pages: 720,
+    summary: "Using mindfulness to face stress, pain, and illness — a programme trusted by hospitals worldwide.",
+    pages: "720 pages", year: "2013", tag: "Anxiety & Stress",
+    accent: "#0891b2", letter: "F",
     tags: ["anxiety", "sleep"],
+    isFree: false,
+    freeUrl: "",
   },
   {
-    id: 6,
+    id: "6",
     title: "The Miracle Morning",
     author: "Hal Elrod",
-    year: 2012,
     mood: "Motivation",
-    accent: "#059669",
-    letter: "T",
-    summary:
-      "Hal Elrod rebuilt his life after a near-fatal accident by designing a morning routine built on six habits: Silence, Affirmations, Visualisation, Exercise, Reading, and Scribing. A practical, energising read for anyone who wants to take control of how their day begins.",
-    pages: 208,
+    summary: "A morning ritual used by millions to build discipline, silence self-doubt, and show up fully each day.",
+    pages: "208 pages", year: "2012", tag: "Motivation",
+    accent: "#059669", letter: "T",
     tags: ["motivation"],
+    isFree: false,
+    freeUrl: "",
+  },
+  {
+    id: "7",
+    title: "Anxiety: A Self-Help Guide",
+    author: "NHS / Get Self Help",
+    mood: ["anxiety"],
+    summary: "A practical, evidence-based guide written by NHS therapists covering anxiety, panic attacks, and worry — with CBT techniques you can apply immediately. Completely free.",
+    pages: "Free PDF", year: "2023", tag: "Anxiety & Stress",
+    accent: "#0891b2", letter: "A",
+    isFree: true,
+    freeUrl: "https://www.getselfhelp.co.uk/docs/AnxietySelfHelp.pdf",
+  },
+
+  // Book id "8" — Overcoming Depression Workbook
+  {
+    id: "8",
+    title: "Overcoming Depression Workbook",
+    author: "Adrian College",
+    mood: ["depression"],
+    summary: "A practical CBT-based workbook for understanding and overcoming depression — covers symptoms, triggers, lifestyle changes, and daily therapy exercises. Free to download.",
+    pages: "Free PDF", year: "2022", tag: "Depression",
+    accent: "#d97706", letter: "O",
+    isFree: true,
+    freeUrl: "https://www.adrian.edu/files/assets/overcomingdepressionworkbook.pdf",
+  },
+
+  // Book id "9" — Anxiety & Depression Workbook For Dummies
+  {
+    id: "9",
+    title: "Anxiety & Depression Workbook For Dummies",
+    author: "Archive.org",
+    mood: ["anxiety", "depression"],
+    summary: "The popular Dummies series workbook for anxiety and depression — freely available to borrow and read online on Internet Archive. No signup required.",
+    pages: "Free to Read", year: "2015", tag: "Anxiety & Depression",
+    accent: "#7c3aed", letter: "A",
+    isFree: true,
+    freeUrl: "https://archive.org/details/anxietydepressionworkbookfordummies",
+  },
+
+  // Book id "10" — Vagus Nerve Self Help
+  {
+    id: "10",
+    title: "Healing Power of the Vagus Nerve",
+    author: "Stanley Rosenberg",
+    mood: ["anxiety", "sleep", "motivation"],
+    summary: "Self-help exercises for anxiety, depression, trauma, and stress — freely available on Internet Archive. Covers breathing, movement, and nervous system regulation.",
+    pages: "Free to Read", year: "2024", tag: "Anxiety & Sleep",
+    accent: "#059669", letter: "H",
+    isFree: true,
+    freeUrl: "https://archive.org/details/accessing-the-healing-power-of-the-vagus-nerve-self-help-exercises-for-anxiety-d",
   },
 ];
 
@@ -137,92 +184,152 @@ const ARTICLES = [
   {
     id: "1",
     type: "personal",
-    title: "I Hid My Depression for 3 Years — Here's What Finally Helped",
-    source: "Medium",
-    author: "Ananya Sharma",
-    summary: "A 26-year-old software engineer from Bengaluru shares how she smiled at work every day while falling apart inside — and the one conversation with her mother that changed everything.",
+    title: "My Journey Through Depression, Stress & Finding a Way Forward",
+    source: "ADAA",
+    author: "Jarek Tadla",
+    summary: "A high-achiever who hid his depression behind success for years — until he hit breaking point and made the bravest decision of his life: asking for help.",
     tag: "Depression",
     tagColor: "#d97706",
-    readTime: "6 min read",
-    url: "https://medium.com/invisible-illness/living-with-depression-while-appearing-fine-7e2e1b9c3a1d",
+    readTime: "5 min read",
+    url: "https://adaa.org/living-with-anxiety/personal-stories/my-journey-through-depression-stress-suicide",
     gradient: "linear-gradient(135deg, #fef3c7, #fde68a)",
-    letter: "A",
+    letter: "J",
     accentColor: "#d97706",
   },
   {
     id: "2",
-    type: "published",
-    title: "How Mindfulness Helped Me Survive My Anxiety Disorder",
-    source: "The Hindu",
-    author: "Priya Menon",
-    summary: "A Mumbai-based journalist describes her two-year battle with panic attacks and how a simple 10-minute daily practice slowly brought her back to herself.",
+    type: "personal",
+    title: "Fearless Living: My Journey With Anxiety",
+    source: "ADAA",
+    author: "Personal Story",
+    summary: "15 years of severe panic attacks that stopped her from leaving home — and the combination of therapies that finally gave her life back, step by step.",
     tag: "Anxiety",
     tagColor: "#0891b2",
-    readTime: "8 min read",
-    url: "https://www.thehindu.com/sci-tech/health/how-mindfulness-changed-my-life/article32871234.ece",
+    readTime: "6 min read",
+    url: "https://adaa.org/living-with-anxiety/personal-stories/fearless-living-my-journey-anxiety",
     gradient: "linear-gradient(135deg, #e0f2fe, #bae6fd)",
-    letter: "P",
+    letter: "F",
     accentColor: "#0891b2",
   },
   {
     id: "3",
     type: "personal",
-    title: "Losing My Job at 32 Almost Broke Me — Almost",
-    source: "YourStory",
-    author: "Rahul Verma",
-    summary: "After being laid off during the pandemic, a Delhi man hit rock bottom. This is his honest account of depression, shame, and the slow road back to finding purpose.",
-    tag: "Motivation",
+    title: "Rising Above My Story of Depression and Anxiety",
+    source: "ADAA",
+    author: "Personal Story",
+    summary: "Growing up in a violent home, losing her mother at 24, decades of running from herself — until grief finally cracked her open to real healing.",
+    tag: "Depression & Anxiety",
     tagColor: "#059669",
     readTime: "7 min read",
-    url: "https://yourstory.com/2021/04/mental-health-layoff-recovery-story",
+    url: "https://adaa.org/living-with-anxiety/personal-stories/rising-above-my-story-depression-and-anxiety",
     gradient: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
     letter: "R",
     accentColor: "#059669",
   },
   {
     id: "4",
-    type: "published",
-    title: "India's Silent Mental Health Crisis: Stories From the Inside",
-    source: "NDTV",
-    author: "NDTV Health Desk",
-    summary: "Real accounts from five Indians across different cities who sought help for anxiety and depression — and why they say asking for help was the bravest thing they ever did.",
-    tag: "Anxiety & Depression",
+    type: "personal",
+    title: "Courage Unveiled: My Journey With Generalized Anxiety Disorder",
+    source: "ADAA",
+    author: "Personal Story",
+    summary: "Diagnosed at 18, hiding behind a fake smile for decades — until a crisis at 43 forced her to finally stop pretending and start truly healing.",
+    tag: "Anxiety",
     tagColor: "#7c3aed",
-    readTime: "10 min read",
-    url: "https://www.ndtv.com/health/mental-health-personal-stories-india-2021",
+    readTime: "6 min read",
+    url: "https://adaa.org/living-with-anxiety/personal-stories/courage-unveiled",
     gradient: "linear-gradient(135deg, #ede9fe, #ddd6fe)",
-    letter: "N",
+    letter: "C",
     accentColor: "#7c3aed",
   },
   {
     id: "5",
     type: "personal",
-    title: "Meri Neend Wapas Aayi — How I Fixed 4 Years of Insomnia",
-    source: "iDiva",
-    author: "Sunita Kapoor",
-    summary: "A Jaipur homemaker and mother of two shares the practical and emotional journey of reclaiming her sleep — and her sanity — after years of sleepless nights and exhaustion.",
-    tag: "Sleep",
-    tagColor: "#7c3aed",
+    title: "Journey to Recovery",
+    source: "ADAA",
+    author: "Personal Story",
+    summary: "From rock bottom — including a suicide attempt — to leading a mental health platform for men. An honest account of the long, messy road back to life.",
+    tag: "Depression",
+    tagColor: "#d97706",
     readTime: "5 min read",
-    url: "https://www.idiva.com/wellness/mental-health/my-insomnia-story-how-i-finally-slept/18008888",
-    gradient: "linear-gradient(135deg, #ede9fe, #ddd6fe)",
-    letter: "S",
-    accentColor: "#7c3aed",
+    url: "https://adaa.org/living-with-anxiety/personal-stories/journey-recovery",
+    gradient: "linear-gradient(135deg, #fef3c7, #fde68a)",
+    letter: "J",
+    accentColor: "#d97706",
   },
   {
     id: "6",
-    type: "published",
-    title: "When Therapy Changed My Life: A First-Timer's Honest Account",
-    source: "Hindustan Times",
-    author: "Kavya Nair",
-    summary: "A Kerala woman describes her fear, shame, and eventual relief around seeing a therapist for the first time — and why she wishes she had done it years earlier.",
-    tag: "Personal Story",
+    type: "personal",
+    title: "Surviving GAD: How I Finally Reclaimed My Life",
+    source: "ADAA",
+    author: "Medrick Lihanda",
+    summary: "Panic attacks, ER visits, intrusive thoughts every day — a father of two shares how therapy and self-understanding helped him overcome generalized anxiety disorder.",
+    tag: "Anxiety",
     tagColor: "#0891b2",
-    readTime: "9 min read",
-    url: "https://www.hindustantimes.com/lifestyle/health/therapy-first-time-experience-mental-health-india",
+    readTime: "4 min read",
+    url: "https://adaa.org/living-with-anxiety/personal-stories/surviving-gad-generalized-anxiety-disorder",
     gradient: "linear-gradient(135deg, #e0f2fe, #bae6fd)",
-    letter: "K",
+    letter: "S",
     accentColor: "#0891b2",
+  },
+  {
+    id: "7",
+    type: "personal",
+    title: "🇮🇳 I Am Fighting Depression. Every Day. And You Can Too!",
+    source: "The Better India",
+    author: "Harika Bantupalli",
+    summary: "A 22-year-old Indian woman in a good job with a good salary — and completely falling apart inside. Her story of depression in a society that calls it weakness.",
+    tag: "Depression · India",
+    tagColor: "#e11d48",
+    readTime: "6 min read",
+    url: "https://thebetterindia.com/50257/depression-causes-symptoms-mental-health/",
+    gradient: "linear-gradient(135deg, #ffe4e6, #fecdd3)",
+    letter: "H",
+    accentColor: "#e11d48",
+  },
+  {
+    id: "8",
+    type: "personal",
+    title: "🇮🇳 Living With Anxiety — Why India Needs to Talk About Mental Health",
+    source: "The Better India",
+    author: "Indian Personal Story",
+    summary: "Sitting at her office desk, she knows what's coming. She rushes to the bathroom. A panic attack. Again. A raw, honest account of anxiety in an Indian workplace.",
+    tag: "Anxiety · India",
+    tagColor: "#e11d48",
+    readTime: "7 min read",
+    url: "https://thebetterindia.com/71635/anxiety-mental-illness-depression-india/",
+    gradient: "linear-gradient(135deg, #ffe4e6, #fecdd3)",
+    letter: "A",
+    accentColor: "#e11d48",
+  },
+  {
+    id: "9",
+    type: "published",
+    title: "🇮🇳 Inspiring Stories of Hope — MBBS Student Overcomes Anxiety",
+    source: "Live Love Laugh Foundation",
+    author: "Indian Personal Story",
+    summary: "An Indian MBBS student and classical vocalist diagnosed with dissociative disorder shares how she balanced crushing academic pressure with her mental health recovery.",
+    tag: "Anxiety · India",
+    tagColor: "#e11d48",
+    readTime: "5 min read",
+    url: "https://www.thelivelovelaughfoundation.org/impact/stories-of-hope",
+    gradient: "linear-gradient(135deg, #ffe4e6, #fecdd3)",
+    letter: "I",
+    accentColor: "#e11d48",
+  },
+  {
+    id: "10",
+    type: "published",
+    title: "🇮🇳 A Friend's Suicide Led This IIT Alumnus to Touch 2 Lakh Lives",
+    source: "The Better India",
+    author: "Richa Singh",
+    summary: "After losing a friend to suicide, an IIT Guwahati graduate built YourDOST — an emotional wellness platform that has since helped over 2 lakh Indians find support.",
+    tag: "Motivation · India",
+    tagColor: "#e11d48",
+    readTime: "6 min read",
+    url: "https://thebetterindia.com/49813/yourdost-depression-richa-singh-iit-guwahati-depression/",
+    gradient: "linear-gradient(135deg, #ffe4e6, #fecdd3)",
+    letter: "R",
+    accentColor: "#e11d48",
   },
 ];
 
@@ -230,7 +337,7 @@ const ARTICLES = [
 
 export default function ResourcesPage() {
   const [activeFilter, setActiveFilter] = useState<Mood>("all");
-  const [expandedBook, setExpandedBook] = useState<number | null>(null);
+  const [expandedBook, setExpandedBook] = useState<string | null>(null);
   const [activeMood, setActiveMood] = useState<StoryMood | null>(null);
   const [story, setStory] = useState<string>("");
   const [storyLoading, setStoryLoading] = useState(false);
@@ -239,7 +346,11 @@ export default function ResourcesPage() {
   const filteredBooks =
     activeFilter === "all"
       ? BOOKS
-      : BOOKS.filter((b) => b.tags.includes(activeFilter));
+      : BOOKS.filter((b) => {
+          if (Array.isArray(b.mood)) return b.mood.includes(activeFilter);
+          if (b.tags) return b.tags.includes(activeFilter);
+          return false;
+        });
 
   const generateStory = async (topic: string): Promise<string> => {
     const res = await fetch("/api/generate-story", {
@@ -401,6 +512,7 @@ export default function ResourcesPage() {
                   padding: "1.5rem",
                   cursor: "pointer",
                   transition: "background-color 0.15s",
+                  position: "relative",
                 }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.backgroundColor = "#E7F2F7")}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.backgroundColor = "#ffffff")}
@@ -423,6 +535,17 @@ export default function ResourcesPage() {
                       {book.letter}
                     </span>
                   </div>
+                  {book.isFree && (
+                    <div style={{
+                      position: "absolute", top: 8, right: 8,
+                      fontSize: 10, fontWeight: 700, color: "#fff",
+                      background: "#16a34a", padding: "2px 7px",
+                      borderRadius: 999, letterSpacing: "0.05em",
+                      fontFamily: "system-ui, sans-serif",
+                    }}>
+                      FREE
+                    </div>
+                  )}
                   <div>
                     <p
                       style={{
@@ -462,25 +585,40 @@ export default function ResourcesPage() {
                     <p style={{ fontSize: "0.88rem", color: "#334e5e", lineHeight: 1.75, marginBottom: "1rem" }}>
                       {book.summary}
                     </p>
-                    <p style={{ fontSize: "0.78rem", color: "#4a7a94", marginBottom: "0.75rem" }}>
-                      {book.pages} pages
-                    </p>
-                    <a
-                      href={`https://www.google.com/search?q=${encodeURIComponent(book.title + " " + book.author + " book")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "inline-block",
-                        fontSize: "0.82rem",
-                        fontWeight: 600,
-                        color: "#297194",
-                        textDecoration: "none",
-                        borderBottom: "1px solid #297194",
-                        paddingBottom: "1px",
-                      }}
-                    >
-                      Find this book →
-                    </a>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 12, color: "#9dbfcc" }}>{book.pages}</span>
+                        {book.isFree && (
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, color: "#fff",
+                            background: "#16a34a", padding: "2px 8px",
+                            borderRadius: 999, letterSpacing: "0.05em",
+                            fontFamily: "system-ui, sans-serif",
+                          }}>
+                            FREE PDF
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href={book.isFree ? book.freeUrl : `https://www.google.com/search?q=${encodeURIComponent(book.title + " " + book.author + " buy")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          fontSize: 13, fontWeight: 600,
+                          color: book.isFree ? "#fff" : "#297194",
+                          background: book.isFree ? "#16a34a" : "transparent",
+                          textDecoration: "none",
+                          borderBottom: book.isFree ? "none" : "1.5px solid #297194",
+                          padding: book.isFree ? "6px 14px" : "0",
+                          borderRadius: book.isFree ? 999 : 0,
+                          paddingBottom: book.isFree ? "6px" : "1px",
+                          fontFamily: "system-ui, sans-serif",
+                        }}
+                      >
+                        {book.isFree ? "Read Free →" : "Find this book →"}
+                      </a>
+                    </div>
                   </div>
                 )}
 
@@ -646,12 +784,12 @@ export default function ResourcesPage() {
           a.summary.toLowerCase().includes(articleSearch.toLowerCase()) ||
           a.tag.toLowerCase().includes(articleSearch.toLowerCase())
         ).length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px 0", color: "#9dbfcc" }}>
-            <p style={{ fontSize: 15, fontFamily: "system-ui, sans-serif" }}>
-              No articles found for &ldquo;{articleSearch}&rdquo;
-            </p>
-          </div>
-        )}
+            <div style={{ textAlign: "center", padding: "40px 0", color: "#9dbfcc" }}>
+              <p style={{ fontSize: 15, fontFamily: "system-ui, sans-serif" }}>
+                No articles found for &ldquo;{articleSearch}&rdquo;
+              </p>
+            </div>
+          )}
       </section>
 
       {/* ── AI Story Generator ────────────────────────────────────────────── */}
