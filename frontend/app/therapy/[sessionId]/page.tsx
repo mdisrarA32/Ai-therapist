@@ -52,6 +52,7 @@ import {
   getAllChatSessions,
   ChatSession,
 } from "@/lib/api/chat";
+import { detectCrisis } from "@/lib/services/CrisisDetectionService";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 import { Separator } from "@/components/ui/separator";
@@ -489,8 +490,12 @@ export default function TherapyPage() {
       });
 
       if (aiResponse && aiResponse.message) {
-          if (aiResponse.isCrisis) {
-             setCrisisLanguage(aiResponse.detectedLanguage || 'en');
+          // Client-side crisis check — catches cases where backend stream doesn't return isCrisis
+          const crisisResult = detectCrisis(currentMessage);
+          const isCrisis = aiResponse.isCrisis || crisisResult.isCrisis;
+
+          if (isCrisis) {
+             setCrisisLanguage(aiResponse.detectedLanguage || crisisResult.detectedLanguage || 'en');
              setShowCrisisModal(true);
           }
           if (aiResponse.detectedLanguage) {
