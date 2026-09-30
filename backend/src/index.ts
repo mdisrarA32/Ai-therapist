@@ -1,6 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import dns from "node:dns";
+// MongoDB Atlas DNS and connection setup
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+} catch {
+  // Ignore in environments where setting DNS servers is restricted
+}
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
