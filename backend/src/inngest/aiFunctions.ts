@@ -51,7 +51,7 @@ export const processChatMessage = inngest.createFunction(
 
           const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
           const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
             messages: [{ role: "system", content: prompt }],
             max_tokens: 1024,
             temperature: 0.1
@@ -123,7 +123,7 @@ export const processChatMessage = inngest.createFunction(
 
           const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
           const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
             messages: [{ role: "system", content: prompt }],
             max_tokens: 1024,
             temperature: 0.7

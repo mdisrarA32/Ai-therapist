@@ -62,9 +62,10 @@ Always encourage professional help for serious issues.
 
     // Step 4 — Call Groq API
     try {
+      const groqModel = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
       const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
       const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: groqModel,
         messages: [
           {
             role: 'system',
@@ -84,7 +85,7 @@ Always encourage professional help for serious issues.
       // Step 5 — Retry if wrong language returned
       if (detectedLang !== 'en' && isLikelyEnglish(aiResponse)) {
         const retryCompletion = await groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
+          model: groqModel,
           messages: [
             {
               role: 'system',
