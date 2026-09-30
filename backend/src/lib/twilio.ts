@@ -1,8 +1,5 @@
 import twilio from "twilio";
 
-console.log("TWILIO SID:", process.env.TWILIO_ACCOUNT_SID);
-console.log("TWILIO TOKEN:", process.env.TWILIO_AUTH_TOKEN);
-
 if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
   throw new Error("Twilio credentials are missing from environment variables");
 }
